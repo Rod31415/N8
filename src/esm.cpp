@@ -471,7 +471,7 @@ void Tokenize(std::string buffer)
                         aux += c;
                         break;
                 case DB:
-                        if (c == '\'')
+                        if (c == '\"')
                         {
                                 state=STRING;
                                 aux="";
@@ -497,7 +497,7 @@ void Tokenize(std::string buffer)
                         break;
                 case STRING:
 
-                        if (c == '\'')
+                        if (c == '\"')
                         {
                                 break;
                         }
