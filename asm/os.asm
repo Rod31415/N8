@@ -3,7 +3,8 @@ main:
     jsr #fnPrintStr
     jmp #end
 
-.str: .string "##  N8 CPU  ##",0xa," - hola - ",0x0
+.str: .string "##  N8 CPU  ##",0xa
+      .string " - hola - ",0x0
 fnPrintStr:
     decw SP
     popw &vrPrintStr
