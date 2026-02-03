@@ -7,7 +7,7 @@ init:
         jmp #slash
 .str:
                 .string '+========Monitor========+',0xa
-                .string '|  0x4000   -  BASIC    |',0x0
+                .string '|  0x0300   -  BASIC    |',0x0
 
 slash:
         
@@ -326,8 +326,7 @@ ansi_home:
         ld A#'H'
         st A&0x2000
         rts
-
-.org 0x4000
+.org 0x300
 basicf:
 
         ld A#<.str
@@ -370,24 +369,23 @@ basicf:
         jpz #.zero2
         jmp #.normal
 .zero2:
-        ld A#0x0
-        st A&basic_num
-        st A&basic_num+1
+        jmp #init
 .normal:
-        ;ld A&dec_linebuffer1+1
-        ;jsr #printhexf
+        ld A&dec_linebuffer1+1
+        jsr #printhexf
 
-        ;ld A&dec_linebuffer1
-        ;jsr #printhexf
+        ld A&dec_linebuffer1
+        jsr #printhexf
         
+        ld A#0xA
+        st A&0x2000
         
-        
-        pshb &basic_num
-        pshb &dec_linebuffer1
+        ;pshb &basic_num
+        ;pshb &dec_linebuffer1
 
-        jsr #built_multiply8
+        ;jsr #built_multiply8
 
-        popw &basic_num
+        ;popw &basic_num
 
         ;ld A&basic_num+1
         ;jsr #printhexf
@@ -400,12 +398,8 @@ basicf:
         st A&dec_linebuffer1
         st A&dec_linebuffer1+1
 
-        
-
-
+    
         rts
-
-
 .end:
         jmp #slash
 .str:

@@ -319,9 +319,10 @@ int main(int argc, char **argv)
         {
                 for (CPUSTATE.MicroStep = 0; CPUSTATE.MicroStep < 16; CPUSTATE.MicroStep++)
                 {
-                        //getch();
+                  //      getchar();
+
                         // if(CPUSTATE.IR==118)
-                         //showMicro(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 2048 + CPUSTATE.ZeroF * 4096]);
+                        //showMicro(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 4096 + CPUSTATE.ZeroF * 8192]);
                         executeMicroFalling(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 4096 + CPUSTATE.ZeroF * 8192]);
                         executeMicroRising(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 4096 + CPUSTATE.ZeroF * 8192]);
                 }
@@ -333,6 +334,8 @@ int main(int argc, char **argv)
                         std::cout<<std::hex<<static_cast<int>(CPUSTATE.RAM[i+0xfff0])<<" ";
                 }
                 std::cout<<std::dec<< "\n";*/
+                if(CPUSTATE.IR==0x94)
+                    break;
         }
 }
 // 8100:03 19 81 5B 00 68 16 81 07 00 20 02 19 81 14 01 07 19 81 62 00 81 62 00 00 1B 81 68 6F 6C 61 20 42 55 45 4E 41 53 20 74 61 72 64 65 73 0A

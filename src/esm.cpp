@@ -41,19 +41,24 @@ size_t LabelIndex = 0;
 size_t LabelScopeIndex = 0;
 
 Instruction Instructions[] = {
+
 {"NOP",0},
 {"LD A#",1},
+{"LD A[SP]",0},
+{"LD A[&SP]",0},
 {"LD A&",2},
 {"LD A%",2},
 {"LD B#",1},
+{"LD B[SP]",0},
+{"LD B[&SP]",0},
 {"LD B&",2},
 {"LD B%",2},
+{"ST A[SP]",0},
 {"ST A&",2},
 {"ST A%",2},
+{"ST B[SP]",0},
 {"ST B&",2},
 {"ST B%",2},
-{"ST &SP&",2},
-{"STW &SP&",2},
 {"MOV A,B",0},
 {"MOV B,A",0},
 {"MOVH SP,A",0},
@@ -171,6 +176,8 @@ Instruction Instructions[] = {
 {"PSHB &",2},
 {"PSHW #",2},
 {"PSHW &",2},
+{"PSHSW #",2},
+{"PSHSW &",2},
 {"POP A",0},
 {"POP B",0},
 {"POPW AB",0},
@@ -183,8 +190,7 @@ Instruction Instructions[] = {
 {"DEC SP",0},
 {"DECW SP",0},
 {"DECD SP",0},
-
-
+{"HLT",0},
 
 
 };
@@ -214,12 +220,11 @@ int detectInstructions(std::string aux, char c)
 {
         size_t pos = aux.find_first_not_of(' ');
         if (pos == std::string::npos)
-                return -1;
+            return -1;
         aux = aux.substr(pos, aux.length());
         std::transform(aux.begin(), aux.end(), aux.begin(),
                        [](unsigned char c)
                        { return std::toupper(c); });
-        // printf("|%d|%s|\n",c,aux.c_str());
         int index = 0;
         for (auto s : Instructions)
         {
@@ -348,8 +353,12 @@ void Tokenize(std::string buffer)
                                         InstIndex++;
                                         state = NORMAL;
                                 }
+                                else{
+                                printf("#%s/%c#",aux.c_str(),c);
+                                }
+                                
                                 byteIndex += Instructions[op].operands + 1;
-
+                                
                                 aux = "";
                         }
 
@@ -413,6 +422,7 @@ void Tokenize(std::string buffer)
 
                         if (c == '\n' || c == '+' || c == '-' || c == ';')
                         {
+                            printf("|%s|",aux.c_str());
                                 MemInsts[InstIndex].msb = false;
                                 if (aux.find(">") != std::string::npos)
                                         MemInsts[InstIndex].msb = true;
@@ -421,6 +431,7 @@ void Tokenize(std::string buffer)
                                 aux.erase(remove_if(aux.begin(), aux.end(), isspace), aux.end());
 
                                 MemInsts[InstIndex++].operand = aux;
+
                                 state = NORMAL;
                                 if (c == '+')
                                         state = PLUS;
@@ -527,12 +538,12 @@ void Tokenize(std::string buffer)
                         //printf("#%s",aux.c_str());
                         if (c == '\n')
                         {
-                                printf("ORG VALUE |%04x|\n", InstIndex);
-                                 printf("BYT VALUE |%04x|\n", byteIndex);
+                                //printf("ORG VALUE |%04x|\n", InstIndex);
+                                 //printf("BYT VALUE |%04x|\n", byteIndex);
                                 InstIndex += getValue(aux);
                                 byteIndex += getValue(aux);
-                                 printf("ORG VALUE |%04x|\n", InstIndex);
-                                 printf("BYT VALUE |%04x|\n", byteIndex);
+                                // printf("ORG VALUE |%04x|\n", InstIndex);
+                                 //printf("BYT VALUE |%04x|\n", byteIndex);
                                 state = NORMAL;
                                 aux = "";
                                 break;
@@ -594,6 +605,7 @@ int main(int argc, char **argv)
                 {
                         // printf(" / %d %d / ",Instructions[MemInsts[i].opcode].operands,MemInsts[i].opcode);
                         operand = getValue(MemInsts[i].operand);
+                        
                         if (operand == noReturn)
                         {
                                 printf("<Syntax Error>Label not defined on line %d \"%s\"\n", MemInsts[i].lineDefined + 1, MemInsts[i].operand.c_str());
