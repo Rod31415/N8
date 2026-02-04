@@ -1,24 +1,13 @@
 init:
-    pshsw #0xff
-    jsr #fnShiftLeft16
-       
+    pshb #0x9c
+    pshb #0xdf
+    jsr #fnMultiply8
+    
     jsr #fnPrintHex
     dec SP
     jsr #fnPrintHex
     
     hlt
-    ;incw SP
-
-    
-    jsr #fnPrintHex
-    
-    ;dec SP
-    ;ld A[SP]
-    ;inc SP
-    ;psh A
-    ;jsr #fnPrintHex
-    ;pop A
-    ;jsr #fnPrintHex
     
     jmp #end
 .str: 
@@ -110,32 +99,75 @@ fnShiftLeft16:
     rts
 
 fnMultiply8:
-    pshb #0x0
-    pshw #0x0
-    pshw #0x0
+    ;pshb #0x0 ;spf + 1 shiftRef
+    ;pshw #0x0 ;spf + 3 shiftAdd
+    ;pshw #0x0 ;spf + 5 res
     
-    decd SP 
-    dec SP
-    decw SP
+    ;decd SP   ;spf + 1
+    ;dec SP    ;spf + 0
+    decw SP   ;spf - 2 [arg 1]
     
     ld A[SP]
-    dec SP
+    dec SP    ;spf - 3 [arg 0]
     ld B[SP]
 
-    inc SP
-    incw SP
-    inc SP
+    incd SP    ;spf + 1 shiftRef
     
     st B[SP]
-    inc SP
+    inc SP    ;spf + 2 shiftAdd l
+    st A[SP]
+    dec SP    ;spf + 1 shiftRef 
+    
+.loop:
+    ld A[SP]
+    and A#0x1
+    incd SP   ;spf + 5 res
+    jnz #.add 
+.goback:    
+    decd SP   ;spf + 1 shiftRef
+    ld A[SP]
+    shr
     st A[SP]
     
-    decw SP
-    
+    cmp A#0x0
+    jpz #.return
 
-    ;.loop:
+    incw SP   ;spf + 3 shiftAdd
+
+    ld A[SP]
+    shl 
+    st A[SP]
     
-    ;jmp #.loop
+    dec SP
+    ld A[SP]
+    shl 
+    st A[SP]
+
+    inc SP
+
+    ld A[SP]
+    adc A#0x0
+    st A[SP]
+
+    decw SP   ;spf + 1 shiftRef 
+
+    jmp #.loop
+.add:
+    jsr #fnAdd16
+    jmp #.goback
+.return:
+    incd SP   ;spf + 5 res
+    ld A[SP]
+    dec SP    ;spf + 4 res l
+    ld B[SP]
+    decd SP   ;spf + 0 
+    decw SP   ;spf - 2 [arg 1]
+    st A[SP]
+    dec SP 
+    st B[SP]  ;spf - 3 [arg 0]
+    
+    inc SP
+    incw SP
 
     rts
 

@@ -1,6 +1,10 @@
 #include <iostream>
 #include <fstream>
 #include <conio.h>
+#include <iomanip>
+
+//#define DEBUG
+
 
 #define SPNOT 0b1000000000000000 // 0
 #define ME 0b0100000000000000    // 1
@@ -58,7 +62,7 @@ struct cpuState
 {
         Word Bus;
         Byte A, B, C;
-        Word PC, SP, IR, MR;
+        Word PC, SP, BP, IR, MR;
         Byte MicroStep;
         Byte ZeroF, CarryF;
         Byte RAM[65536];
@@ -169,6 +173,11 @@ void executeMicroRising(Word signal)
                 {
                         sendByte(CPUSTATE.Bus);
                 }
+                else if (CPUSTATE.MR == 0x2001)
+                {
+                        CPUSTATE.BP = CPUSTATE.Bus;
+                }
+
         }
         if (isSignal("II", signal))
                 CPUSTATE.IR = CPUSTATE.Bus;
@@ -218,6 +227,10 @@ void executeMicroFalling(Word signal)
                 if (CPUSTATE.MR == 0x2000)
                 {
                         CPUSTATE.Bus = recvByte();
+                }
+                else if(CPUSTATE.MR == 0x2001)
+                {
+                    CPUSTATE.Bus=CPUSTATE.BP;
                 }
         }
         if (isSignal("POH", signal))
@@ -315,25 +328,34 @@ int main(int argc, char **argv)
         CPUSTATE.MR = 0;
         CPUSTATE.IR = 0;
         CPUSTATE.SP = 0xff00;
+        CPUSTATE.BP = 0xff00;
         for (; 1;)
         {
                 for (CPUSTATE.MicroStep = 0; CPUSTATE.MicroStep < 16; CPUSTATE.MicroStep++)
                 {
-                  //      getchar();
-
+#ifdef DEBUG
+                        getchar();
                         // if(CPUSTATE.IR==118)
-                        //showMicro(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 4096 + CPUSTATE.ZeroF * 8192]);
+                        showMicro(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 4096 + CPUSTATE.ZeroF * 8192]);
+#endif
                         executeMicroFalling(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 4096 + CPUSTATE.ZeroF * 8192]);
                         executeMicroRising(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 4096 + CPUSTATE.ZeroF * 8192]);
                 }
-                /*std::cout <<std::hex<< " IR:" << static_cast<int>(CPUSTATE.IR) << " A:" << static_cast<int>(CPUSTATE.A)
+#ifdef DEBUG
+                std::cout <<std::hex<< " IR:" << static_cast<int>(CPUSTATE.IR) << " A:" << static_cast<int>(CPUSTATE.A)
                           << " B:" << static_cast<int>(CPUSTATE.B) << " Z:" << static_cast<int>(CPUSTATE.ZeroF)
                           << " C:" << static_cast<int>(CPUSTATE.CarryF) << " PC:" << static_cast<int>(CPUSTATE.PC)
-                          << " SP:" << static_cast<int>(CPUSTATE.SP) <<" ";
+                          << " SP:" << static_cast<int>(CPUSTATE.SP) <<"\n";
+                        if(CPUSTATE.SP>=0xfff0){
+                            int s=CPUSTATE.SP-0xfff0;
+                            for(i=0;i<s;i++)std::cout<<"   ";
+                            std::cout<<"#\n";
+                        }
                 for(i=0;i<16;i++){
-                        std::cout<<std::hex<<static_cast<int>(CPUSTATE.RAM[i+0xfff0])<<" ";
+                        std::cout<<std::hex<<std::setw(2)<<std::setfill('0')<<static_cast<int>(CPUSTATE.RAM[i+0xfff0])<<" ";
                 }
-                std::cout<<std::dec<< "\n";*/
+                std::cout<<std::dec<< "\n";
+#endif
                 if(CPUSTATE.IR==0x94)
                     break;
         }
