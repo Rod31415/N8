@@ -7,13 +7,16 @@ init:
     ;jsr #fnPrintHex
     ;add SP#1
     ;jsr #fnPrintHex
-    pshw #0x4000
-    jsr #fnReadTillEnter
-    
-    pshw #0x4000
-    jsr #fnToDec
-
+    pshsw #0x9c4
+    pshsw #0xa
+    jsr #fnwMultiply16
     add SP#2
+    jsr #fnPrintHex
+    add SP#1
+    jsr #fnPrintHex
+
+
+
     hlt
     
     jmp #end
@@ -91,7 +94,7 @@ fnPrintHex:
 end:
     jmp #end
 
-fnAdd16:
+fnwAdd16:
     add FP,SP#2
 
     ld A[FP]
@@ -119,7 +122,7 @@ fnAdd16:
 
     rts
 
-fnShiftLeft16:
+fnwShiftLeft16:
     add FP,SP#2
     
     ld A[FP]
@@ -140,9 +143,22 @@ fnShiftLeft16:
 
     rts
 
-fnMultiply8:
+fnwMultiply8:
     sub SP#5
     ; 0.1 res   2.3 add   4 ref   5.6 PC   7 arg1   8 arg0
+    
+    add FP,SP#0
+    ld A#0x0
+    st A[FP];0
+    add FP#1
+    st A[FP];1
+    add FP#1
+    st A[FP];2
+    add FP#1
+    st A[FP];3
+    add FP#1
+    st A[FP];4
+
     add FP,SP#7
     
     ld A[FP]
@@ -177,7 +193,7 @@ fnMultiply8:
 
     psh B
     psh A
-    jsr #fnShiftLeft16
+    jsr #fnwShiftLeft16
     pop A 
     pop B
 
@@ -190,7 +206,7 @@ fnMultiply8:
     jmp #.loop
 .add:
     
-    jsr #fnAdd16
+    jsr #fnwAdd16
     jmp #.goback
 .return:
     
@@ -208,13 +224,90 @@ fnMultiply8:
 
     rts
 
+fnwMultiply16:
+    sub SP#2
+    ; 0.1 res  2.3 PC  4.5 arg1  6.7 arg0
+    mov SP,FP
+    add FP,SP#7
+    
+    ld A[FP]
+    psh A
+    sub FP#2
+    
+    ld A[FP]
+    psh A
+    
+    jsr #fnwMultiply8
 
+    pop A
+    pop B
+
+    add FP,SP#0 
+    st A[FP]
+    add FP#1
+    st B[FP]
+
+    add FP,SP#7
+    
+    ld A[FP]
+    psh A
+    sub FP#3
+    ld A[FP]
+    psh A
+
+    jsr #fnwMultiply8
+
+    pop A
+    pop A
+    
+    add FP,SP#0
+    ld B[FP]
+    add A
+    st A[FP]
+    
+    add FP,SP#6
+    
+    ld A[FP]
+    psh A
+    sub FP#1
+    ld A[FP]
+    psh A
+
+    jsr #fnwMultiply8
+
+    pop A
+    pop A
+    
+    add FP,SP#0
+    ld B[FP]
+    add A
+    st A[FP]
+
+    ld A[FP]
+    add FP#1
+    ld B[FP]
+
+    add FP,SP#6
+    st A[FP]
+    add FP#1
+    st B[FP]
+
+    add SP#2
+    rts
 
 fnToDec:
-    sub 
-    add FP,SP#4
+    ; 0.1 res  2.3 0xA  4.5 PC  6.7 arg0
+    pshsw #10
+    sub SP#2
+    add FP,SP#6
 .loop:
+    ld A[&FP]
+    cmp A#0x0
+    jnz #.put
     jmp #.loop
+.put:
+    
+
 .return:
     rts
 
@@ -237,7 +330,7 @@ fnReadTillEnter:
     pshsw #1
     psh A
     psh B
-    jsr #fnAdd16
+    jsr #fnwAdd16
     pop B
     pop A
     add SP#2
