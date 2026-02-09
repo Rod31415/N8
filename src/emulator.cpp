@@ -7,6 +7,8 @@
 #define DEBUG1
 #define DEBUG2
 */
+#define SBC   0b100000000000000000000000
+#define ROT   0b010000000000000000000000
 #define NOFLG 0b001000000000000000000000
 #define XI    0b000100000000000000000000
 #define XO    0b000010000000000000000000
@@ -113,6 +115,8 @@ MicrocodeSignalStruct Signals[] = {
     {"XI", XI},
     {"XO", XO},
     {"NOFLG",NOFLG},
+    {"ROT",ROT},
+    {"SBC",SBC},
 };
 
 unsigned int mCode[16384];
@@ -281,7 +285,11 @@ void executeMicroFalling(unsigned int signal)
         if (isSignal("SUB", signal))
         {
                 CPUSTATE.Bus = (CPUSTATE.A + (255 - CPUSTATE.B) + 1);
-                // std::cout << "SUB is " << static_cast<unsigned int>((CPUSTATE.Bus)) << " ";
+                setFlags();
+        }
+        if (isSignal("SBC", signal))
+        {
+                CPUSTATE.Bus = (CPUSTATE.A + (255 - CPUSTATE.B) + CPUSTATE.CarryF);
                 setFlags();
         }
         if (isSignal("AND", signal))
@@ -307,11 +315,15 @@ void executeMicroFalling(unsigned int signal)
         if (isSignal("SHL", signal))
         {
                 CPUSTATE.Bus = (CPUSTATE.A << 1);
+                if(isSignal("ROT", signal))
+                CPUSTATE.Bus = CPUSTATE.Bus|CPUSTATE.CarryF;
                 setFlags();
         }
         if (isSignal("SHR", signal))
         {
                 CPUSTATE.Bus = (CPUSTATE.A >> 1);
+                if(isSignal("ROT", signal))
+                CPUSTATE.Bus = CPUSTATE.Bus|(CPUSTATE.CarryF<<7);
                 setFlags();
         }
 }
@@ -400,7 +412,7 @@ int main(int argc, char **argv)
                
 
 #endif
-                if(CPUSTATE.IR==0x96||c==27)
+                if(CPUSTATE.IR==0xff||c==27)
                     break;
         }
 }

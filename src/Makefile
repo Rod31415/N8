@@ -8,9 +8,10 @@ all: $(BINS)
 %.exe: %.cpp
 	$(CC) .\$< -o .\$@
 
-
-%.asm:
+%.esm:
 	esm.exe ../asm/$@
+%.c:
+	compiler.exe ../highlanguage/$@
 emu:
 	emulator.exe
 

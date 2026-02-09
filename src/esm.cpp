@@ -41,157 +41,264 @@ size_t LabelIndex = 0;
 size_t LabelScopeIndex = 0;
 
 Instruction Instructions[] = {
-{"NOP",0},
-{"LD A#",1},
-{"LD A[FP]",0},
-{"LD A[&FP]",0},
-{"LD A&",2},
-{"LD A%",2},
-{"LD B#",1},
-{"LD B[FP]",0},
-{"LD B[&FP]",0},
-{"LD B&",2},
-{"LD B%",2},
-{"ST A[FP]",0},
+
+{"HLT",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"BCC #",2},
+{"BCS #",2},
+{"BNE #",2},
+{"BEQ #",2},
+{"JSR #",2},
+{"RTS",0},
+{"PSHW [FP]",0},
+{"PSHB [FP]",0},
+{"PSHSW &",2},
+{"PSHW &",2},
+{"PSHB &",2},
+{"PSHSW #",2},
+{"PSHW #",2},
+{"PSHB #",1},
+{"PSH B",0},
+{"PSH A",0},
+{"ROR A[&FP]",0},
+{"ROR A[FP]",0},
+{"ROR [FP]",0},
+{"ROR A&",2},
+{"ROR &",2},
+{"ROR",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"POPW [FP]",0},
+{"POPB [FP]",0},
+{"POPW &",2},
+{"POPB &",2},
+{"POPW AB",0},
+{"POP B",0},
+{"POP A",0},
+{"SHR A[&FP]",0},
+{"SHR A[FP]",0},
+{"SHR [FP]",0},
+{"SHR A&",2},
+{"SHR &",2},
+{"SHR",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"SHR4 A{FP}",0},
+{"SHR4 A[FP]",0},
+{"SHR4 [FP]",0},
+{"SHR4 A&",2},
+{"SHR4 &",2},
+{"SHR4",0},
+{"|",0},
+{"|",0},
+{"MOV FP,A",0},
+{"MOV SP,A",0},
+{"MOV A,FP",0},
+{"MOV A,SP",0},
+{"MOV FP,SP",0},
+{"MOV SP,FP",0},
+{"MOV B,A",0},
+{"MOV A,B",0},
+{"ROL A{FP}",0},
+{"ROL A[FP]",0},
+{"ROL [FP]",0},
+{"ROL A&",2},
+{"ROL &",2},
+{"ROL",0},
+{"|",0},
+{"|",0},
+{"ST B[&FP]",0},
 {"ST A[&FP]",0},
-{"ST A&",2},
+{"ST B%",2},
 {"ST A%",2},
 {"ST B[FP]",0},
-{"ST B[&FP]",0},
+{"ST A[FP]",0},
 {"ST B&",2},
-{"ST B%",2},
-{"MOV A,B",0},
-{"MOV B,A",0},
-{"MOV SP,FP",0},
-{"MOV FP,SP",0},
-{"MOV A,FP",0},
-{"MOV FP,A",0},
-{"MOV A,SP",0},
-{"MOV SP,A",0},
-{"GET AB",0},
-{"ADD &",2},
-{"ADD A#",1},
-{"ADD A&",2},
-{"ADD A%",2},
-{"ADD A",0},
-{"ADD B#",1},
-{"ADD B&",2},
-{"ADD B%",2},
-{"ADD B",0},
-{"ADD SP#",1},
-{"ADD FP#",1},
-{"ADC &",2},
-{"ADC A#",1},
-{"ADC A&",2},
-{"ADC A%",2},
-{"ADC A",0},
-{"ADC B#",1},
-{"ADC B&",2},
-{"ADC B%",2},
-{"ADC B",0},
-{"SUB &",2},
-{"SUB A#",1},
-{"SUB A&",2},
-{"SUB A%",2},
-{"SUB A",0},
-{"SUB B#",1},
-{"SUB B&",2},
-{"SUB B%",2},
-{"SUB B",0},
-{"SUB SP#",1},
-{"SUB FP#",1},
-{"AND &",2},
-{"AND A#",1},
-{"AND A&",2},
-{"AND A%",2},
-{"AND A",0},
-{"AND B#",1},
-{"AND B&",2},
-{"AND B%",2},
-{"AND B",0},
-{"OR &",2},
-{"OR A#",1},
-{"OR A&",2},
-{"OR A%",2},
-{"OR A",0},
-{"OR B#",1},
-{"OR B&",2},
-{"OR B%",2},
-{"OR B",0},
-{"XOR &",2},
-{"XOR A#",1},
-{"XOR A&",2},
-{"XOR A%",2},
-{"XOR A",0},
-{"XOR B#",1},
-{"XOR B&",2},
-{"XOR B%",2},
-{"XOR B",0},
-{"SHL4 &",2},
-{"SHL4 A&",2},
-{"SHL4",0},
-{"SHL2 &",2},
-{"SHL2 A&",2},
-{"SHL2",0},
-{"SHL &",2},
+{"ST A&",2},
+{"SHL A{FP}",0},
+{"SHL A[FP]",0},
+{"SHL [FP]",0},
 {"SHL A&",2},
+{"SHL &",2},
 {"SHL",0},
-{"SHR4 &",2},
-{"SHR4 A&",2},
-{"SHR4",0},
-{"SHR2 &",2},
-{"SHR2 A&",2},
-{"SHR2",0},
-{"SHR &",2},
-{"SHR A&",2},
-{"SHR",0},
-{"CMP A#",1},
-{"CMP A&",2},
-{"CMP A%",2},
-{"CMP B#",1},
+{"LD B[&FP]",0},
+{"LD A[&FP]",0},
+{"LD B%",2},
+{"LD A%",2},
+{"LD B[FP]",0},
+{"LD A[FP]",0},
+{"LD B&",2},
+{"LD A&",2},
+{"LD B#",1},
+{"LD A#",1},
+{"SHL4 A{FP}",0},
+{"SHL4 A[FP]",0},
+{"SHL4 [FP]",0},
+{"SHL4 A&",2},
+{"SHL4 &",2},
+{"SHL4",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"CMP B[&FP]",0},
+{"CMP A[&FP]",0},
+{"CMP B[FP]",0},
+{"CMP A[FP]",0},
 {"CMP B&",2},
-{"CMP B%",2},
+{"CMP A&",2},
+{"CMP B#",1},
+{"CMP A#",1},
 {"CMP",0},
-{"JMP #",2},
-{"JMP &",2},
-{"JMP %",2},
-{"JPC #",2},
-{"JPC &",2},
-{"JPC %",2},
-{"JPZ #",2},
-{"JPZ &",2},
-{"JPZ %",2},
-{"JNC #",2},
-{"JNC &",2},
-{"JNC %",2},
-{"JNZ #",2},
-{"JNZ &",2},
-{"JNZ %",2},
-{"JSR #",2},
-{"BEQ #",2},
-{"BNE #",2},
-{"BCS #",2},
-{"BCC #",2},
-{"RTS",0},
-{"PSH A",0},
-{"PSH B",0},
-{"PSH SP",0},
-{"PSHB #",1},
-{"PSHB &",2},
-{"PSHW #",2},
-{"PSHW &",2},
-{"PSHSW #",2},
-{"PSHSW &",2},
-{"PSHB [FP]",0},
-{"PSHW [FP]",0},
-{"POP A",0},
-{"POP B",0},
-{"POPW AB",0},
-{"POPB &",2},
-{"POPW &",2},
-{"ADD FP,SP#",1},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"XOR B{FP}",0},
+{"XOR A{FP}",0},
+{"XOR B[FP]",0},
+{"XOR A[FP]",0},
+{"XOR [FP]",0},
+{"XOR B&",2},
+{"XOR A&",2},
+{"XOR &",2},
+{"XOR B#",1},
+{"XOR A#",1},
+{"XOR B",0},
+{"XOR A",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"OR B{FP}",0},
+{"OR A{FP}",0},
+{"OR B[FP]",0},
+{"OR A[FP]",0},
+{"OR [FP]",0},
+{"OR B&",2},
+{"OR A&",2},
+{"OR &",2},
+{"OR B#",1},
+{"OR A#",1},
+{"OR B",0},
+{"OR A",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"AND B{FP}",0},
+{"AND A{FP}",0},
+{"AND B[FP]",0},
+{"AND A[FP]",0},
+{"AND [FP]",0},
+{"AND B&",2},
+{"AND A&",2},
+{"AND &",2},
+{"AND B#",1},
+{"AND A#",1},
+{"AND B",0},
+{"AND A",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"SBC B{FP}",0},
+{"SBC A{FP}",0},
+{"SBC B[FP]",0},
+{"SBC A[FP]",0},
+{"SBC [FP]",0},
+{"SBC B&",2},
+{"SBC A&",2},
+{"SBC &",2},
+{"SBC B#",1},
+{"SBC A#",1},
+{"SBC B",0},
+{"SBC A",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"ADC B{FP}",0},
+{"ADC A{FP}",0},
+{"ADC B[FP]",0},
+{"ADC A[FP]",0},
+{"ADC [FP]",0},
+{"ADC B&",2},
+{"ADC A&",2},
+{"ADC &",2},
+{"ADC B#",1},
+{"ADC A#",1},
+{"ADC B",0},
+{"ADC A",0},
+{"|",0},
+{"SUB B{FP}",0},
+{"SUB A{FP}",0},
+{"SUB B[FP]",0},
+{"SUB A[FP]",0},
+{"SUB [FP]",0},
+{"SUB B&",2},
+{"SUB A&",2},
+{"SUB &",2},
 {"SUB FP,SP#",1},
-{"HLT",0},
+{"SUB FP#",1},
+{"SUB SP#",1},
+{"SUB B#",1},
+{"SUB A#",1},
+{"SUB B",0},
+{"SUB A",0},
+{"|",0},
+{"ADD B{FP}",0},
+{"ADD A{FP}",0},
+{"ADD B[FP]",0},
+{"ADD A[FP]",0},
+{"ADD [FP]",0},
+{"ADD B&",2},
+{"ADD A&",2},
+{"ADD &",2},
+{"ADD FP,SP#",1},
+{"ADD FP#",1},
+{"ADD SP#",1},
+{"ADD B#",1},
+{"ADD A#",1},
+{"ADD B",0},
+{"ADD A",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"|",0},
+{"JNZ &",2},
+{"JNZ #",2},
+{"JNC &",2},
+{"JNC #",2},
+{"JPZ &",2},
+{"JPZ #",2},
+{"JPC &",2},
+{"JPC #",2},
+{"JMP &",2},
+{"JMP #",2},
+{"NOP",0},
+
 
 };
 
@@ -218,31 +325,36 @@ size_t addrIndex = 0;
 
 int detectInstructions(std::string aux, char c)
 {
+
         size_t pos = aux.find_first_not_of(' ');
-        if (pos == std::string::npos)
-            return -1;
+        if (pos != std::string::npos)
         aux = aux.substr(pos, aux.length());
+
         std::transform(aux.begin(), aux.end(), aux.begin(),
-                       [](unsigned char c)
-                       { return std::toupper(c); });
-        int index = 0;
+                       [](unsigned char ch)
+                       { return std::toupper(ch); });
+        int index = -1;
         for (auto s : Instructions)
         {
-                if (aux.find(s.mnem) != std::string::npos)
+                index++;
+            if(s.mnem=="|")
+                continue;
+            if (aux.rfind(s.mnem,0) ==0)
                 {
-                        if (c != '\n')
+                        if(c!='\n'){
                                 for (auto ns : Instructions)
                                 {
 
-                                        if (ns.mnem.find(aux) != std::string::npos && s.mnem.compare(ns.mnem))
+                                        if (ns.mnem != s.mnem &&ns.mnem.rfind(s.mnem, 0) == 0)
                                         {
+                                            printf("\nparece %s %s %c #",ns.mnem.c_str(),aux.c_str(),c);
                                                 return -1;
                                         }
                                 }
-
+                        }
+                        printf("\n#%s/%x#   ",aux.c_str(),256-index-1);
                         return index;
                 }
-                index++;
         }
         return -1;
 }
@@ -333,15 +445,18 @@ void Tokenize(std::string buffer)
         int op = -1, byteIndex = 0;
         for (auto c : buffer)
         {
-                if (c == '\n')
+                if (c == '\n'){
                         lineIndex++;
+                if(aux=="")continue;}
+                
+                //printf("",aux)
                 switch (state)
                 {
 
                 case NORMAL:
 
                         op = detectInstructions(aux, c);
-
+                         
                         if (op > -1)
                         {
 
@@ -353,10 +468,8 @@ void Tokenize(std::string buffer)
                                         InstIndex++;
                                         state = NORMAL;
                                 }
-                                else{
-                                printf("#%s/%c#",aux.c_str(),c);
-                                }
                                 
+                                printf(" op: %d ",Instructions[op].operands);
                                 byteIndex += Instructions[op].operands + 1;
                                 
                                 aux = "";
@@ -554,6 +667,8 @@ void Tokenize(std::string buffer)
         }
 }
 bool onFile = true;
+
+
 int main(int argc, char **argv)
 {
 
@@ -582,6 +697,7 @@ int main(int argc, char **argv)
                 MemInsts[i].opcode = 0;
         }
 
+
         Tokenize(filebuffer);
         std::cout << "\nLabels:\n";
         for (size_t i = 0; i < LabelIndex; i++)
@@ -608,7 +724,7 @@ int main(int argc, char **argv)
                         
                         if (operand == noReturn)
                         {
-                                printf("<Syntax Error>Label not defined on line %d \"%s\"\n", MemInsts[i].lineDefined + 1, MemInsts[i].operand.c_str());
+                                printf("<Syntax Error>Label not defined on line %d -%d-\"%s\"\n", MemInsts[i].lineDefined + 1,MemInsts[i].opcode, MemInsts[i].operand.c_str());
                                 return 0;
                         }
                 }
@@ -624,7 +740,7 @@ int main(int argc, char **argv)
                 {
                         indexByte++;
 
-                        newwrite = MemInsts[i].opcode & 255;
+                        newwrite = (255-MemInsts[i].opcode) & 255;
 
                         /*if (MemInsts[i].opcode != 0)
                                 printf(" %s - %02x", Instructions[MemInsts[i].opcode].mnem.c_str(), newwrite);

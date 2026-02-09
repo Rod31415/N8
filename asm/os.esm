@@ -1,0 +1,16 @@
+init:
+    pshsw #0x4234
+    pshsw #0x1132
+    
+    add FP,SP#2
+    
+    ld A[FP]
+    sub FP#2
+    add A{FP}
+
+    add FP#3
+    ld A[FP]
+    sub FP#2
+    adc A{FP}
+
+    hlt
