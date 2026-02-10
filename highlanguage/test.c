@@ -1,11 +1,8 @@
 
 
 int sum(int a,int b){
-    int c;
+    int c=a+(b-2);
 }
-
 int main(){
-
-    sum(a,b);
-
+    int s=sum(2,3);
 }
