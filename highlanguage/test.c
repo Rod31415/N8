@@ -1,4 +1,11 @@
+
+
+int sum(int a,int b){
+    int c;
+}
+
 int main(){
-    int s=2;
-    return 1+s;
+
+    sum(a,b);
+
 }

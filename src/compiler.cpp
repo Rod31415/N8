@@ -2,21 +2,19 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <algorithm>
+
+#include <conio.h>
 
 
 
-
-
+//////////////////////////// LEXER /////////////////////////
 
 
 
 enum TokenType{
-    INT_TK=0,
-    SHORT_TK,
-    CHAR_TK,
-    VOID_TK,
+    DATATYPE_TK=0,
     RETURN_TK,
-    MAIN_TK,
     
     SEMICOLON_TK,
     OPEN_PARENTHESIS_TK,
@@ -28,10 +26,12 @@ enum TokenType{
     MULTIPLY_TK,
     DIVIDE_TK,
     EQUAL_TK,
+    COMMA_TK,
 
     IDENTIFIER_TK,
 
     NUMBER_TK,
+    EOF_TK,
 
 
 };
@@ -43,12 +43,11 @@ TokenType tk;
 };
 
 reservedKeyWordsStruct reservedKeyWords[]={
-    {"int",INT_TK},
-    {"short",SHORT_TK},
-    {"char",CHAR_TK},
-    {"void",VOID_TK},
+    {"int",DATATYPE_TK},
+    {"short",DATATYPE_TK},
+    {"char",DATATYPE_TK},
+    {"void",DATATYPE_TK},
     {"return",RETURN_TK},
-    {"main",MAIN_TK},
 };
 
 
@@ -68,6 +67,7 @@ reservedCharsStruct reservedChars[]={
     {'*',MULTIPLY_TK},
     {'/',DIVIDE_TK},
     {'=',EQUAL_TK},
+    {',',COMMA_TK},
 };
 
 enum StateType{
@@ -82,8 +82,8 @@ enum StateType{
 
 
 enum TCode{
+    FAILESS=0,
     SUCCESS,
-    FAILESS
 };
 
 struct Token{
@@ -91,7 +91,6 @@ struct Token{
     std::string value;
 };
 
-std::vector<Token> TokenVector;
 
 
 
@@ -110,116 +109,437 @@ return isAlpha(c)||isNumeric(c);
 
 
 
-void pushToken(TokenType tk,std::string readed){
-TokenVector.push_back({tk,readed});
-}
-
-bool pushDetectedReservedChar(char actualChar){
-    for(auto c:reservedChars){
-        if(actualChar==c.uniqueChar){
-            std::string s(1,actualChar);
-        pushToken(c.tk,s);
-        return true;}
-    }
-    return false;
-}
 
 
-bool pushDetectedReservedWords(std::string readed){
+class Lexer
+{
+    private:
+        std::vector<Token> TokenVector;
+        
+        std::string globalBuffer;
+        size_t globalIndex;
+        StateType actualState;
+        std::string intermediateString="";
+        char actualChar;
 
-if(readed=="")return false;
+    public:
+        
+        Lexer(std::string str){
+        this->globalIndex=0;
+        this->globalBuffer=str;
+        }
+        
+        void pushToken(TokenType tk,std::string readed)
+        {
+            this->TokenVector.push_back({tk,readed});
+        }
 
-std::string aux;
-size_t pos = readed.find_first_not_of(' ');
-        if (pos != std::string::npos)
-        aux = readed.substr(pos, readed.length());
-        for(auto word:reservedKeyWords){
-            if(aux==word.keyWord){
-                pushToken(word.tk,readed);
-                return true;
+        bool pushDetectedReservedChar(char setChar)
+        {
+            for(auto c:reservedChars){
+                if(setChar==c.uniqueChar)
+                {
+                    std::string s(1,setChar);
+                    this->pushToken(c.tk,s);
+                    return true;
+                }
             }
+            return false;
         }
-    return false;
-}
-
-std::string globalBuffer="";
-size_t globalIndex=0;
-void setGlobalBuffer(std::string str){
-    globalBuffer=str;
-}
-
-char consumeChar(){
-    return globalBuffer[globalIndex++];
-}
-
-char seeChar(){
-    return globalBuffer[globalIndex];
-}
 
 
-TCode Tokenize(std::string buffer){
-    StateType actualState=NORMAL_STATE;
-    std::string intermediateString="";
-    setGlobalBuffer(buffer);
-    char actualChar; 
-    while(true){
+        bool pushDetectedReservedWords(std::string readed){
 
-    actualChar=seeChar();
+            if(readed=="")return false;
+
+            std::string aux;
+            size_t pos = readed.find_first_not_of(' ');
+            if (pos != std::string::npos)
+                aux = readed.substr(pos, readed.length());
+            for(auto word:reservedKeyWords)
+            {
+                if(aux==word.keyWord)
+                {
+                    this->pushToken(word.tk,aux);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        char consumeChar()
+        {
+            return this->globalBuffer[this->globalIndex++];
+        }
+        
+        char seeChar()
+        {
+            return this->globalBuffer[this->globalIndex];
+        }
+        
+        std::vector<Token> Tokenize(){
+
+            this->actualState=NORMAL_STATE;
+            while(true){
+
+                this->actualChar=this->seeChar();
     
-    if(actualChar=='\n')actualChar=consumeChar();
-    actualChar=seeChar();
+                if(this->actualChar=='\n')
+                    this->actualChar=this->consumeChar();
+                
+                this->actualChar=this->seeChar();
 
-    if(actualChar==0)break;
-
-        switch(actualState){
-            case NORMAL_STATE:
-                        if(isAlpha(actualChar)){
-                            actualState=ALPHA_STATE;
-                            intermediateString=actualChar;}
-                        else if(isNumeric(actualChar)){
-                            actualState=NUMERIC_STATE;
-                            intermediateString=actualChar;}
+                if(this->actualChar==0)break;
+                switch(this->actualState){
+                    case NORMAL_STATE:
+                        if(isAlpha(this->actualChar)){
+                            this->actualState=ALPHA_STATE;
+                            this->intermediateString=this->actualChar;}
+                        else if(isNumeric(this->actualChar)){
+                            this->actualState=NUMERIC_STATE;
+                            this->intermediateString=this->actualChar;}
                         else{
-                            pushDetectedReservedChar(actualChar);
+                            this->pushDetectedReservedChar(this->actualChar);
                         }
-                        consumeChar();
+                        this->consumeChar();
                     break;
-            case ALPHA_STATE:
-                    if(!isAlphaNumeric(actualChar)){
-                        if(!pushDetectedReservedWords(intermediateString))
-                            pushToken(IDENTIFIER_TK,intermediateString);
+                    case ALPHA_STATE:
+                        if(!isAlphaNumeric(this->actualChar)){
+                            if(!this->pushDetectedReservedWords(this->intermediateString))
+                                this->pushToken(IDENTIFIER_TK,this->intermediateString);
 
-                        actualState=NORMAL_STATE;
-                        intermediateString="";
-                    }
-                    else{
-                        consumeChar();
-                    }
-                    intermediateString+=actualChar;
+                            this->actualState=NORMAL_STATE;
+                            this->intermediateString="";
+                        }
+                        else
+                            this->consumeChar();
+                        
+                        this->intermediateString+=actualChar;
                     
                     break;
-            case NUMERIC_STATE:
+                    case NUMERIC_STATE:
                     
-                    if(!isNumeric(actualChar)){
-                        pushToken(NUMBER_TK,intermediateString);
-                        actualState=NORMAL_STATE;
-                        intermediateString="";
-                    }
-                    else{
-                    consumeChar();
-                    }
-                    intermediateString+=actualChar;
-
+                        if(!isNumeric(this->actualChar)){
+                            this->pushToken(NUMBER_TK,this->intermediateString);
+                            this->actualState=NORMAL_STATE;
+                            this->intermediateString="";
+                        }
+                        else
+                            this->consumeChar();
+                    
+                        this->intermediateString+=this->actualChar;
                     break;
-        }
+                }
         //std::cout<< intermediateString<<"\n";
 
-    }
+            }
+        this->pushToken(EOF_TK,"EOF");
 
-    return SUCCESS;
+        return this->TokenVector;
+        }
+};
 
 
-}
+
+///////////////////////// PARSER ////////////////////////
+
+enum NodeType{
+    NodeProgram,
+    NodeBlock
+};
+
+enum Datatype{
+    INT=0,
+    SHORT,
+    CHAR,
+    VOID,
+};
+
+struct StatementStruct
+{
+        NodeType type;
+};
+
+struct Expr : StatementStruct
+{
+
+};
+
+struct BlockStruct
+{
+        StatementStruct** statements;
+};
+
+struct FunctionStruct
+{
+
+        BlockStruct* block;
+};
+
+struct DeclarationStruct
+{
+        Datatype type;
+        std::string identifier;
+};
+
+struct AssignmentStruct
+{
+        Datatype type;
+        std::string identifier;
+        Expr* expression;
+};
+
+
+
+struct ProgramStruct{
+        StatementStruct** statements;
+};
+
+class Parser
+{
+    private:
+        Token* TokenArray;
+        Token actualToken;
+        bool noErrorApear;
+        int globalSpace;
+
+    public:
+        Parser(std::vector<Token> tk)
+        {
+            this->TokenArray=new Token[tk.size()];
+            std::copy_n(tk.begin(),tk.size(),this->TokenArray);
+            this->noErrorApear=true;
+            this->globalSpace=0;
+        }
+        
+        Token consumeToken()
+        {
+            return *this->TokenArray++;
+        }
+
+        Token seeToken(int offset=0)
+        {
+            return *(this->TokenArray+offset);
+        }
+
+        bool expectToken(TokenType tt)
+        {
+            if(this->seeToken().TK==tt){
+            //std::cout<<this->seeToken().TK<<"\n";
+                return (this->consumeToken().TK==tt);}
+            else
+                return false;
+        }
+
+        bool peekToken(TokenType tt)
+        {
+            return (this->seeToken().TK==tt);
+        }
+        
+        void perror(std::string str)
+        {
+            std::cout<<str<<"\n";
+            this->noErrorApear=false;
+        }
+        
+        void parseBinaryExpression()
+        {
+        }
+
+        void parseExpression()
+        {
+            this->globalSpace++;
+            for(int i=0;i<this->globalSpace;i++)
+                std::cout<<"  ";
+            std::cout<<"Expression\n";
+
+
+            
+           
+
+            this->globalSpace--;
+
+        }
+
+        void parseBlock()
+        {
+            
+            this->globalSpace++;
+            for(int i=0;i<this->globalSpace;i++)
+                std::cout<<"  ";
+            std::cout<<"Block\n";
+
+
+            this->expectToken(OPEN_BRACKETS_TK);
+            while(!this->expectToken(CLOSE_BRACKETS_TK)&&this->noErrorApear){
+                this->parseStatement();
+            }
+
+
+            this->globalSpace--;
+        }
+
+        void parseDeclaration()
+        {
+            this->globalSpace++;
+            for(int i=0;i<this->globalSpace;i++)
+                std::cout<<"  ";
+            std::cout<<"Declaration\n";
+
+
+            if(!this->expectToken(DATATYPE_TK))
+                perror("NOT DATATYPE\n");
+            if(!this->expectToken(IDENTIFIER_TK))
+                perror("NOT IDENTIFIER\n");
+            this->expectToken(SEMICOLON_TK);
+            this->globalSpace--;
+
+        }
+
+        void parseAssignment()
+        {
+            this->globalSpace++;
+            for(int i=0;i<this->globalSpace;i++)
+                std::cout<<"  ";
+            std::cout<<"Assignment\n";
+
+
+            if(!this->expectToken(DATATYPE_TK))
+                perror("NOT DATATYPE\n");
+            if(!this->expectToken(IDENTIFIER_TK))
+                perror("NOT IDENTIFIER\n");
+            if(!this->expectToken(EQUAL_TK))
+                perror("NOT IDENTIFIER\n");
+            
+            this->parseExpression();
+
+            this->globalSpace--;
+
+        }
+
+
+        void parseDeclareArguments()
+        {
+            this->globalSpace++;
+            for(int i=0;i<this->globalSpace;i++)
+                std::cout<<"  ";
+            std::cout<<"DeclareArgs\n";
+
+
+            this->expectToken(OPEN_PARENTHESIS_TK);
+            while(!this->expectToken(CLOSE_PARENTHESIS_TK)&&this->noErrorApear){
+                //std::cout<<this->consumeToken().TK;
+                this->parseStatement();
+                this->expectToken(COMMA_TK);
+                //getchar();
+            }
+
+
+            this->globalSpace--;
+            
+        }
+
+        void parseArguments(){
+            this->globalSpace++;
+            for(int i=0;i<this->globalSpace;i++)
+                std::cout<<"  ";
+            std::cout<<"Args\n";
+
+
+            this->expectToken(OPEN_PARENTHESIS_TK);
+            while(!this->expectToken(CLOSE_PARENTHESIS_TK)&&this->noErrorApear){
+                //std::cout<<this->consumeToken().TK;
+                this->expectToken(IDENTIFIER_TK);
+                this->expectToken(COMMA_TK);
+                //getchar();
+            }
+
+
+            this->globalSpace--;
+
+        }
+
+        void parseDeclareFunction()
+        {
+            this->globalSpace++;
+            for(int i=0;i<this->globalSpace;i++)
+                std::cout<<"  ";
+            std::cout<<"DeclareFunction\n";
+
+
+            //FunctionStruct* fn=new FunctionStruct();
+            if(!this->expectToken(DATATYPE_TK))
+                perror("NOT DATATYPE\n");
+            if(!this->expectToken(IDENTIFIER_TK))
+                perror("NOT IDENTIFIER\n");
+            this->parseDeclareArguments();
+            this->parseBlock();
+
+
+            this->globalSpace--;
+        }
+        void parseFunction(){
+             this->globalSpace++;
+            for(int i=0;i<this->globalSpace;i++)
+                std::cout<<"  ";
+            std::cout<<"Function\n";
+
+
+            //FunctionStruct* fn=new FunctionStruct();
+            if(!this->expectToken(IDENTIFIER_TK))
+                perror("NOT IDENTIFIER\n");
+            this->parseArguments();
+
+            this->expectToken(SEMICOLON_TK);
+
+        }
+        
+        void parseStatement()
+        {
+            this->globalSpace++;
+            for(int i=0;i<this->globalSpace;i++)
+                std::cout<<"  ";
+            std::cout<<"Statement\n";
+
+
+            //StatementStruct* a=new StatementStruct();
+            
+            if(seeToken().TK==DATATYPE_TK&&seeToken(1).TK==IDENTIFIER_TK)
+            {
+                if(this->seeToken(2).TK==SEMICOLON_TK||this->seeToken(2).TK==COMMA_TK||this->seeToken(2).TK==CLOSE_PARENTHESIS_TK)
+                    this->parseDeclaration();
+                               else if(this->seeToken(2).TK==OPEN_PARENTHESIS_TK)
+                    this->parseDeclareFunction();
+            }
+
+            if(seeToken().TK==IDENTIFIER_TK){
+                 if(this->seeToken(1).TK==EQUAL_TK)
+                    this->parseAssignment();
+                 else if(this->seeToken(1).TK==OPEN_PARENTHESIS_TK)
+                    this->parseFunction();
+
+            }
+
+
+            this->globalSpace--;
+        }
+
+        void parseProgram()
+        {
+            while(this->seeToken().TK!=EOF_TK&&this->noErrorApear){
+                this->parseStatement();
+            }
+            
+        }
+
+        void generateAbstractSyntaxTree()
+        {
+            this->parseProgram();
+
+        }
+
+};
+
 
 
 int main(int argc, char** argv){
@@ -234,8 +554,16 @@ int main(int argc, char** argv){
         ssbuff<<file.rdbuf();
         std::string buffer=ssbuff.str();
         
-        Tokenize(buffer);
-        for(auto t:TokenVector){
+        Lexer Lexer(buffer);
+
+        std::vector<Token> tk=Lexer.Tokenize();
+
+        Parser Parser(tk);
+
+        Parser.generateAbstractSyntaxTree();
+
+
+        for(auto t:tk){
         std::cout<<t.TK<<" "<<t.value<<"\n";
         }
 
