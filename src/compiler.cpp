@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <iterator>
+#include <string>
 #include <vector>
 #include <sstream>
 #include <algorithm>
@@ -16,6 +18,7 @@ enum TokenType{
     DATATYPE_TK=0,
     RETURN_TK,
     IF_TK,
+    WHILE_TK,
     
     SEMICOLON_TK,
     OPEN_PARENTHESIS_TK,
@@ -26,8 +29,12 @@ enum TokenType{
     MINUS_TK,
     MULTIPLY_TK,
     DIVIDE_TK,
+    SHIFT_RIGHT_TK,
+    SHIFT_LEFT_TK,
     EQUAL_TK,
+    NOT_TK,
     
+    NOT_EQUAL_TK,
     EQUAL_EQUAL_TK,
     GREATER_TK,
     GREATER_EQUAL_TK,
@@ -56,10 +63,11 @@ reservedKeyWordsStruct reservedKeyWords[]={
     {"int",DATATYPE_TK},
     {"short",DATATYPE_TK},
     {"char",DATATYPE_TK},
-    {"void",DATATYPE_TK},
+    {"byte",DATATYPE_TK},
+    {"word",DATATYPE_TK},
     {"return",RETURN_TK},
     {"if",IF_TK},
-    
+    {"while",WHILE_TK},
 };
 
 
@@ -227,6 +235,10 @@ class Lexer
                                 this->consumeChar();
                                 this->pushToken(GREATER_EQUAL_TK,">=");
                             }
+                            else if(this->seeChar(1)=='>'){
+                                this->consumeChar();
+                                this->pushToken(SHIFT_RIGHT_TK, ">>");
+                            }
                             else
                                 this->pushToken(GREATER_TK,">");
                         }
@@ -236,8 +248,21 @@ class Lexer
                                 this->consumeChar();
                                 this->pushToken(LESS_EQUAL_TK,"<=");
                             }
+                            else if(this->seeChar(1)=='<'){
+                                this->consumeChar();
+                                this->pushToken(SHIFT_LEFT_TK, "<<");
+                            }
+
                             else
                                 this->pushToken(LESS_TK,"<");
+                        }
+                        else if(this->seeChar()=='!'){
+                            if(this->seeChar(1)=='='){
+                                this->consumeChar();
+                                this->pushToken(NOT_EQUAL_TK, "!=");
+                            }
+                            else
+                                this->pushToken(NOT_TK, "!");
                         }
 
                         else{
@@ -299,6 +324,7 @@ enum NodeType{
     NodeArguments,
     NodeReturn,
     NodeIf,
+    NodeWhile,
     NodeEnd,
     
 };
@@ -307,7 +333,8 @@ enum Datatype{
     INT=0,
     SHORT,
     CHAR,
-    VOID,
+    BYTE,
+    WORD,
 };
 
 enum Operator{
@@ -321,6 +348,8 @@ enum Operator{
     GreaterEqualOp,
     LessOp,
     LessEqualOp,
+    NotEqualOp,
+    NotOp,
 };
 
 struct StatementStruct
@@ -398,9 +427,22 @@ struct DeclareArgumentsStruct : StatementStruct
     {
         type=NodeDeclareArguments;
     }
+
     std::vector<StatementStruct*> statements;
 };
 
+struct AssignmentVarStruct : StatementStruct
+{
+        AssignmentVarStruct(std::string i,ExprStruct* e)
+        {
+            type=NodeAssignVar;
+            identifier=i;
+            expression=e;
+        }
+
+        std::string identifier;
+        ExprStruct* expression;
+};
 
 
 struct DeclareVarStruct : StatementStruct
@@ -410,11 +452,13 @@ struct DeclareVarStruct : StatementStruct
             type=NodeDeclareVar;
             dtype=d;
             identifier=i;
-            expression=e;
+            expr=nullptr;
+            if(e!=nullptr)
+            expr=new AssignmentVarStruct(i,e);
         }
         Datatype dtype;
         std::string identifier;
-        ExprStruct* expression;
+        AssignmentVarStruct* expr;
 };
 
 
@@ -448,18 +492,6 @@ struct FunctionStruct : StatementStruct
 };
 
 
-struct AssignmentVarStruct : StatementStruct
-{
-        AssignmentVarStruct(std::string i,ExprStruct* e)
-        {
-            type=NodeAssignVar;
-            identifier=i;
-            expression=e;
-        }
-
-        std::string identifier;
-        ExprStruct* expression;
-};
 
 struct ReturnStruct : StatementStruct
 {
@@ -481,6 +513,19 @@ struct IfStruct : StatementStruct
     ExprStruct* expression;
     BlockStruct* block;
 };
+
+struct WhileStruct : StatementStruct
+{
+    WhileStruct(ExprStruct* e,BlockStruct* b){
+        type=NodeWhile;
+        expression=e;
+        block=b;
+    }
+    ExprStruct* expression;
+    BlockStruct* block;
+};
+
+
 
 struct EndStruct : StatementStruct
 {
@@ -512,6 +557,8 @@ if(t.TK==PLUS_TK)return PlusOp;
         case GREATER_EQUAL_TK:return GreaterEqualOp;break;
         case LESS_TK:return LessOp;break;
         case LESS_EQUAL_TK:return LessEqualOp;break;
+        case NOT_EQUAL_TK:return NotEqualOp;break;
+        case NOT_TK:return NotOp;break;
         default:return PlusOp;
     }
 
@@ -521,7 +568,9 @@ Datatype StringToDatatype(std::string str){
 if(str=="int")return INT;
 if(str=="short")return SHORT;
 if(str=="char")return CHAR;
-if(str=="void")return VOID;
+if(str=="byte")return BYTE;
+if(str=="word")return WORD;
+
 return INT;
 }
 
@@ -689,7 +738,7 @@ class Parser
             for(int i=0;i<this->globalSpace;i++)
                 std::cout<<"  ";*/
             ExprStruct* left=this->parseAdditiveExpression();
-            while(this->seeToken().TK==EQUAL_EQUAL_TK||this->seeToken().TK==GREATER_EQUAL_TK||this->seeToken().TK==LESS_EQUAL_TK||this->seeToken().TK==GREATER_TK||this->seeToken().TK==LESS_TK)
+            while(this->seeToken().TK==EQUAL_EQUAL_TK||this->seeToken().TK==GREATER_EQUAL_TK||this->seeToken().TK==LESS_EQUAL_TK||this->seeToken().TK==GREATER_TK||this->seeToken().TK==LESS_TK||this->seeToken().TK==NOT_EQUAL_TK)
             {
                 Operator op=TokenToOperator(this->consumeToken());
                 ExprStruct* right=this->parseAdditiveExpression();
@@ -919,6 +968,20 @@ class Parser
             return new IfStruct(expr,block);
         }
 
+        WhileStruct* parseWhile()
+        {
+            this->expectErrorToken(WHILE_TK,"No while token on while statement\n");
+            this->expectErrorToken(OPEN_PARENTHESIS_TK,"No O parenthesis token on while statement\n");
+
+            ExprStruct* expr=this->parseExpression();
+            
+            this->expectErrorToken(CLOSE_PARENTHESIS_TK,"No C parenthesis token on while statement\n");
+            //std::cout<<this->consumeToken().TK<<"\n";
+
+            BlockStruct* block=this->parseBlock();
+
+            return new WhileStruct(expr,block);
+        }
         
         StatementStruct* parseStatement(bool global=false)
         {
@@ -952,7 +1015,8 @@ class Parser
                 stmt=(StatementStruct*)this->parseReturn();
             else if(this->seeToken().TK==IF_TK&&!global)
                 stmt=(StatementStruct*)this->parseIf();
-
+            else if(this->seeToken().TK==WHILE_TK&&!global)
+                stmt=(StatementStruct*)this->parseWhile();
 
             //this->globalSpace--;
             return stmt;
@@ -1002,10 +1066,22 @@ void seeDatatype(Datatype d)
         case INT:std::cout<<" int ";break;
         case SHORT:std::cout<<" short ";break;
         case CHAR:std::cout<<" char ";break;
-        case VOID:std::cout<<" void ";break;
     }
     std::cout<<"\n";
     indexSpace--;
+}
+
+int sizeOfDataType(Datatype d)
+{
+switch (d)
+    {
+        case INT:return 4;
+        case SHORT:return 2;
+        case CHAR:return 1;
+        case BYTE:return 1;
+        case WORD:return 2;
+    }
+
 }
 
 
@@ -1025,6 +1101,8 @@ void seeOperator(Operator o)
         case LessEqualOp:std::cout<<" <= ";break;
         case GreaterOp:std::cout<<" > ";break;
         case LessOp:std::cout<<" < ";break;
+        case NotEqualOp:std::cout<<" != ";break;
+        case NotOp:std::cout<<" ! ";break;
     }
     std::cout<<"\n";
     indexSpace--;
@@ -1072,6 +1150,7 @@ void seeExpression(ExprStruct* expr)
             seeOperator(biexpr->op);
             seeExpression(biexpr->right);
         }
+
         indexSpace--;
 }
 
@@ -1125,19 +1204,6 @@ void seeFunction(StatementStruct* ptr)
     indexSpace--;
 }
 
-void seeDeclareVar(StatementStruct* ptr)
-{
-    showSpaces("DeclareVar");
-    DeclareVarStruct *var =(DeclareVarStruct*)ptr;
-    seeDatatype(var->dtype);
-    seeIdentifier(var->identifier);
-
-    if(var->expression!=nullptr)
-        seeExpression(var->expression);
-
-    indexSpace--;
-}
-
 void seeAssignmentVar(StatementStruct* ptr)
 {
     showSpaces("AssignVar");
@@ -1147,6 +1213,21 @@ void seeAssignmentVar(StatementStruct* ptr)
 
     indexSpace--;
 }
+
+
+void seeDeclareVar(StatementStruct* ptr)
+{
+    showSpaces("DeclareVar");
+    DeclareVarStruct *var =(DeclareVarStruct*)ptr;
+    seeDatatype(var->dtype);
+    seeIdentifier(var->identifier);
+
+    if(var->expr!=nullptr)
+        seeAssignmentVar(var->expr);
+
+    indexSpace--;
+}
+
 
 void seeReturn(StatementStruct* ptr)
 {
@@ -1166,6 +1247,15 @@ void seeIf(StatementStruct* ptr)
     indexSpace--;
 }
 
+void seeWhile(StatementStruct* ptr)
+{
+    showSpaces("While");
+    WhileStruct* f=(WhileStruct*)ptr;
+    seeExpression(f->expression);
+    seeBlock(f->block);
+    indexSpace--;
+}
+
 
 
 
@@ -1177,6 +1267,7 @@ void seeStatement(StatementStruct* ptr)
     if(ptr->type==NodeAssignVar){seeAssignmentVar(ptr);}
     if(ptr->type==NodeReturn){seeReturn(ptr);}
     if(ptr->type==NodeIf){seeIf(ptr);}
+    if(ptr->type==NodeWhile){seeWhile(ptr);}
 }
 
 
@@ -1186,6 +1277,158 @@ void seeProgram(StatementStruct* ptr)
     for(auto s: p->statements)
         seeStatement(s);
 }
+
+struct Variable
+{
+    std::string Identifier;
+    Datatype dtype;
+    size_t offset;
+    int scope;
+};
+
+#define A 0
+#define B 1
+class CodeGenerator
+{
+    private:
+        std::string assemblyString;
+        std::vector<Variable> Vars;
+        int scopeOnStruct=0;    
+    public:
+
+    CodeGenerator()
+    {
+        this->assemblyString="init: \n jmp #main\n";
+    }
+
+    Variable seeVar(std::string identifier)
+    {
+        for(auto v:Vars)
+        {
+            if(identifier==v.Identifier&&v.scope<=this->scopeOnStruct){
+                std::cout<<"identifier leido: "<<v.Identifier<<" "<<v.offset<<"\n";
+            return v;}
+
+        }
+        return Vars[0];
+    }
+
+    void addOffsetVars(size_t offset)
+    {
+        for ( auto it = Vars.begin(); it != Vars.end() - 1; ++it) {
+            auto& v = *it;
+            
+            v.offset+=offset;
+//            std::cout<<v.Identifier<<v.offset<<" ";
+        }
+
+//        std::cout<<"\n";
+    }
+
+    void genExpression(StatementStruct* ptr,std::string AorB)
+    {
+        if(ptr->type==NodeNumericLiteral)
+        {
+            NumericLiteralStruct* num=(NumericLiteralStruct*)ptr;
+            this->assemblyString+=" ld "+AorB+"#"+num->value+"\n";
+            return;
+        }
+        if(ptr->type==NodeIdentifier)
+        {
+            IdentifierStruct* id=(IdentifierStruct*)ptr;
+            this->assemblyString+=" add FP,SP#"+std::to_string(seeVar(id->value).offset)+"\n ld "+AorB+"[FP]\n";
+        }
+        if(ptr->type==NodeBinaryExpr)
+        {
+            BinaryExprStruct* biexpr=(BinaryExprStruct*)ptr;
+            this->genExpression(biexpr->left,"A");
+            this->genExpression(biexpr->right,"B");
+            if(biexpr->op==PlusOp)
+            {
+                this->assemblyString+=" add "+AorB+"\n";
+            }
+            if(biexpr->op==MinusOp)
+            {
+                this->assemblyString+=" sub "+AorB+"\n";
+            }
+        }
+        std::cout<<"Type:"<<ptr->type<<"\n";
+    }
+
+    void genAssignVar(StatementStruct* ptr)
+    {
+        AssignmentVarStruct* var=(AssignmentVarStruct*)ptr;
+        Variable v=seeVar(var->identifier);
+        this->genExpression((StatementStruct*)var->expression,"A");
+        this->assemblyString+=" add FP,SP#"+std::to_string(v.offset)+"\n st A[FP]\n";
+
+    }
+
+    void genDeclareVar(StatementStruct* ptr)
+    {
+        DeclareVarStruct* var=(DeclareVarStruct*)ptr;
+        this->assemblyString+=" sub SP#"+std::to_string(sizeOfDataType(var->dtype))+"\n";
+        Vars.push_back({var->identifier,var->dtype,0,this->scopeOnStruct});
+        addOffsetVars(sizeOfDataType(var->dtype));
+        if(var->expr!=nullptr){
+            this->genAssignVar((StatementStruct*)var->expr);
+        }
+
+    }
+
+    void genDeclareFunction(StatementStruct* ptr)
+    {
+        DeclareFunctionStruct* fn=(DeclareFunctionStruct*)ptr;
+        this->assemblyString+=fn->identifier+":\n";
+        this->assemblyString+=" mov FP,A\n psh A\n mov SP,FP\n";
+
+        int size=0;
+        for(auto a:fn->args->statements)
+        {
+            DeclareVarStruct* deV=(DeclareVarStruct*)a;
+            size+=sizeOfDataType(deV->dtype);
+        }
+            
+            this->genBlock(fn->block);
+        
+    }
+
+    void genStatement(StatementStruct* ptr)
+    {
+    if(ptr->type==NodeDeclareFunction){this->genDeclareFunction(ptr);}
+    if(ptr->type==NodeFunction){this->assemblyString+="FUNCTION\n";}//seeFunction(ptr);}
+    if(ptr->type==NodeDeclareVar){this->genDeclareVar(ptr);}
+    if(ptr->type==NodeAssignVar){this->genAssignVar(ptr);}
+    if(ptr->type==NodeReturn){this->assemblyString+="RETURN\n";}//seeReturn(ptr);}
+    if(ptr->type==NodeIf){this->assemblyString+="IF\n";}//seeIf(ptr);}
+    if(ptr->type==NodeWhile){this->assemblyString+="WHILE\n";}//seeWhile(ptr);}
+
+    }
+    
+    void genBlock(StatementStruct* ptr)
+    {
+        this->scopeOnStruct++;
+        BlockStruct* p=(BlockStruct*)ptr;
+        for(auto s: p->statements)
+            this->genStatement(s);
+        this->scopeOnStruct--;
+    }   
+
+
+    void genProgram(StatementStruct* ptr)
+    {
+        ProgramStruct* p=(ProgramStruct*)ptr;
+        for(auto s: p->statements)
+            this->genStatement(s);
+
+    }
+
+    std::string gen(StatementStruct* ptr){
+        this->genProgram(ptr);
+        return this->assemblyString;
+    }
+};
+
 
 int main(int argc, char** argv){
     if (argc == 1)
@@ -1207,7 +1450,11 @@ int main(int argc, char** argv){
 
         StatementStruct *ptr=Parser.generateAbstractSyntaxTree();
 
-        seeProgram(ptr);
+        //seeProgram(ptr);
+
+        CodeGenerator CodeGenerator;
+
+        std::cout<<CodeGenerator.gen(ptr);
         /*for(auto t:tk){
         std::cout<<t.TK<<" "<<t.value<<"\n";
         }*/
