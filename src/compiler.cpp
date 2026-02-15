@@ -18,6 +18,7 @@ enum TokenType{
     DATATYPE_TK=0,
     RETURN_TK,
     IF_TK,
+    ELSE_TK,
     WHILE_TK,
     
     SEMICOLON_TK,
@@ -33,6 +34,9 @@ enum TokenType{
     SHIFT_LEFT_TK,
     EQUAL_TK,
     NOT_TK,
+    AND_TK,
+    OR_TK,
+    XOR_TK,
     
     NOT_EQUAL_TK,
     EQUAL_EQUAL_TK,
@@ -67,6 +71,7 @@ reservedKeyWordsStruct reservedKeyWords[]={
     {"word",DATATYPE_TK},
     {"return",RETURN_TK},
     {"if",IF_TK},
+    {"else",ELSE_TK},
     {"while",WHILE_TK},
 };
 
@@ -87,6 +92,8 @@ reservedCharsStruct reservedChars[]={
     {'*',MULTIPLY_TK},
     {'/',DIVIDE_TK},
     {',',COMMA_TK},
+    {'&',AND_TK},
+    {'|',OR_TK},
 };
 
 enum StateType{
@@ -350,6 +357,12 @@ enum Operator{
     LessEqualOp,
     NotEqualOp,
     NotOp,
+    AndOp,
+    OrOp,
+    XorOp,
+    ShiftLeftOp,
+    ShiftRightOp,
+
 };
 
 struct StatementStruct
@@ -505,13 +518,15 @@ struct ReturnStruct : StatementStruct
 
 struct IfStruct : StatementStruct
 {
-    IfStruct(ExprStruct* e,BlockStruct* b){
+    IfStruct(ExprStruct* e,BlockStruct* b,BlockStruct* eb){
         type=NodeIf;
         expression=e;
         block=b;
+        elseblock=eb;
     }
     ExprStruct* expression;
     BlockStruct* block;
+    BlockStruct* elseblock;
 };
 
 struct WhileStruct : StatementStruct
@@ -559,6 +574,10 @@ if(t.TK==PLUS_TK)return PlusOp;
         case LESS_EQUAL_TK:return LessEqualOp;break;
         case NOT_EQUAL_TK:return NotEqualOp;break;
         case NOT_TK:return NotOp;break;
+        case AND_TK:return AndOp;break;
+        case OR_TK:return OrOp;break;
+        case SHIFT_LEFT_TK:return ShiftLeftOp;break;
+        case SHIFT_RIGHT_TK:return ShiftRightOp;break;
         default:return PlusOp;
     }
 
@@ -573,7 +592,7 @@ if(str=="word")return WORD;
 
 return INT;
 }
-
+//#define DEBUG
 class Parser
 {
     private:
@@ -637,42 +656,25 @@ class Parser
         
         ExprStruct* showIdentifier()
         {
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";*/
             Token t=this->seeToken();
-            //std::cout<<"Identifier "<<t.value<<"\n";
             if(this->seeToken(1).TK==OPEN_PARENTHESIS_TK){
                 ExprStruct* fn=(ExprStruct*)this->parseFunction();
             this->globalSpace--;
             return fn;
             }
                 
-            this->globalSpace--;
             this->consumeToken();
             return (ExprStruct*)(new IdentifierStruct(t.value));
 
         }
 
         ExprStruct* showNumeric(){
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";*/
-           
             Token t=this->consumeToken();
-            //std::cout<<"Number "<<t.value<<"\n";
-
-
-            this->globalSpace--;
             return (ExprStruct*)(new NumericLiteralStruct(t.value));
         }
 
         ExprStruct* parsePrimaryExpression()
         {
-           /* this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";
-            std::cout<<"PrimaryExpression\n";*/
             ExprStruct* expr=nullptr;
             if(this->seeToken().TK==IDENTIFIER_TK)
                 expr = this->showIdentifier();
@@ -685,38 +687,42 @@ class Parser
                 this->expectToken(CLOSE_PARENTHESIS_TK);
             }
            
-            //this->globalSpace--;
             return expr;
 
         }
 
-
-        ExprStruct* parseMultiplicativeExpression()
+        ExprStruct* parseBitwiseExpression()
         {
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";
-            std::cout<<"MultiplicativeExpression\n";*/
-            
             ExprStruct* left=this->parsePrimaryExpression();
             
-            while((this->seeToken().TK==MULTIPLY_TK||this->seeToken().TK==DIVIDE_TK)&&this->noErrorApear)
+            while((this->seeToken().TK==AND_TK||this->seeToken().TK==OR_TK||this->seeToken().TK==SHIFT_LEFT_TK||this->seeToken().TK==SHIFT_RIGHT_TK)&&this->noErrorApear)
             {
                 Operator op=TokenToOperator(this->consumeToken());
                 ExprStruct* right=this->parsePrimaryExpression();
                 left=(ExprStruct*)(new BinaryExprStruct(left,right,op));
             }
             
-            //this->globalSpace--;
+            return left;
+        }
+
+
+        ExprStruct* parseMultiplicativeExpression()
+        {
+            
+            ExprStruct* left=this->parseBitwiseExpression();
+            
+            while((this->seeToken().TK==MULTIPLY_TK||this->seeToken().TK==DIVIDE_TK)&&this->noErrorApear)
+            {
+                Operator op=TokenToOperator(this->consumeToken());
+                ExprStruct* right=this->parseBitwiseExpression();
+                left=(ExprStruct*)(new BinaryExprStruct(left,right,op));
+            }
+            
             return left;
         }
 
         ExprStruct* parseAdditiveExpression()
         {
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";
-            std::cout<<"AdditiveExpression\n";*/
             
             ExprStruct* left=this->parseMultiplicativeExpression();
 
@@ -728,15 +734,11 @@ class Parser
             }
 
 
-            //this->globalSpace--;
             return left;
         }
 
         ExprStruct* parseComparisonExpression()
         {
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";*/
             ExprStruct* left=this->parseAdditiveExpression();
             while(this->seeToken().TK==EQUAL_EQUAL_TK||this->seeToken().TK==GREATER_EQUAL_TK||this->seeToken().TK==LESS_EQUAL_TK||this->seeToken().TK==GREATER_TK||this->seeToken().TK==LESS_TK||this->seeToken().TK==NOT_EQUAL_TK)
             {
@@ -746,19 +748,13 @@ class Parser
             }
            
 
-            //this->globalSpace--;
             return left;
         }
 
         ExprStruct* parseExpression()
         {
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";
-            std::cout<<"Expression\n";*/
             ExprStruct* expr= this->parseComparisonExpression();
 
-           // this->globalSpace--;
             return expr;
 
         }
@@ -766,10 +762,6 @@ class Parser
         BlockStruct* parseBlock()
         {
             
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";
-            std::cout<<"Block\n";*/
             BlockStruct* block=new BlockStruct;
 
             this->expectToken(OPEN_BRACKETS_TK);
@@ -778,17 +770,11 @@ class Parser
             }
 
 
-            //this->globalSpace--;
             return block;
         }
 
         DeclareVarStruct* parseDeclaration()
         {
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";
-            std::cout<<"Declaration\n";*/
-
 
             if(this->seeToken().TK!=DATATYPE_TK)
                 perror("NOT DATATYPE\n");
@@ -802,17 +788,12 @@ class Parser
 
             DeclareVarStruct* var=new DeclareVarStruct(dt,i,nullptr);
 
-           // this->globalSpace--;
 
             return var;
         }
 
         AssignmentVarStruct* parseAssignment()
         {
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";
-            std::cout<<"Assignment\n";*/
             
             if(this->seeToken().TK!=IDENTIFIER_TK)
                 perror("NOT IDENTIFIER\n");
@@ -825,17 +806,12 @@ class Parser
             this->expectToken(SEMICOLON_TK);
 
             AssignmentVarStruct* var=new AssignmentVarStruct(i,expr);
-            //this->globalSpace--;
             return var;
 
         }
 
         DeclareVarStruct* parseDeclarationAssignment()
         {
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";
-            std::cout<<"Assignment\n";*/
 
             if(this->seeToken().TK!=DATATYPE_TK)
                 perror("NOT DATATYPE\n");
@@ -852,7 +828,6 @@ class Parser
             
             DeclareVarStruct* var=new DeclareVarStruct(dt,i,expr);
 
-            //this->globalSpace--;
             return var;
         }
 
@@ -860,10 +835,6 @@ class Parser
 
         DeclareArgumentsStruct* parseDeclareArguments()
         {
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";
-            std::cout<<"DeclareArgs\n";*/
 
             DeclareArgumentsStruct* args=new DeclareArgumentsStruct();
 
@@ -876,15 +847,10 @@ class Parser
             }
 
 
-            //this->globalSpace--;
             return args;
         }
 
         ArgumentsStruct* parseArguments(){
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";
-            std::cout<<"Args\n";*/
 
             ArgumentsStruct* args=new ArgumentsStruct();
 
@@ -897,19 +863,12 @@ class Parser
             }
 
 
-            //this->globalSpace--;
             return args;
         }
 
         DeclareFunctionStruct* parseDeclareFunction()
         {
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";
-            std::cout<<"DeclareFunction\n";*/
 
-
-            //FunctionStruct* fn=new FunctionStruct();
             if(this->seeToken().TK!=DATATYPE_TK)
                 perror("NOT DATATYPE\n");
             Datatype d=StringToDatatype(this->consumeToken().value);
@@ -921,16 +880,11 @@ class Parser
             BlockStruct* b=this->parseBlock();
 
 
-            //this->globalSpace--;
-
             return new DeclareFunctionStruct(d,i,args,b);
         }
+
         FunctionStruct* parseFunction()
         {
-            /* this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";
-            std::cout<<"Function\n";*/
 
             if(this->seeToken().TK!=IDENTIFIER_TK)
                 perror("NOT IDENTIFIER\n");
@@ -938,12 +892,13 @@ class Parser
             ArgumentsStruct* arg=this->parseArguments();
 
             this->expectToken(SEMICOLON_TK);
-            //this->globalSpace--;
             return new FunctionStruct(i,arg);
             
         }
+
         ReturnStruct* parseReturn()
         {
+
             if(!this->expectToken(RETURN_TK))
                 perror("NOT Return\n");
 
@@ -955,6 +910,7 @@ class Parser
         }
         IfStruct* parseIf()
         {
+
             this->expectErrorToken(IF_TK,"No if token on if statement\n");
             this->expectErrorToken(OPEN_PARENTHESIS_TK,"No O parenthesis token on if statement\n");
 
@@ -964,12 +920,19 @@ class Parser
             //std::cout<<this->consumeToken().TK<<"\n";
 
             BlockStruct* block=this->parseBlock();
+            BlockStruct* elseblock=nullptr;
 
-            return new IfStruct(expr,block);
+            if(this->expectToken(ELSE_TK))
+            {
+                elseblock=this->parseBlock();
+            }
+
+            return new IfStruct(expr,block,elseblock);
         }
 
         WhileStruct* parseWhile()
         {
+
             this->expectErrorToken(WHILE_TK,"No while token on while statement\n");
             this->expectErrorToken(OPEN_PARENTHESIS_TK,"No O parenthesis token on while statement\n");
 
@@ -985,11 +948,6 @@ class Parser
         
         StatementStruct* parseStatement(bool global=false)
         {
-            /*this->globalSpace++;
-            for(int i=0;i<this->globalSpace;i++)
-                std::cout<<"  ";
-            std::cout<<"Statement\n";*/
-            
 
             StatementStruct* stmt=nullptr;
             
@@ -1018,12 +976,12 @@ class Parser
             else if(this->seeToken().TK==WHILE_TK&&!global)
                 stmt=(StatementStruct*)this->parseWhile();
 
-            //this->globalSpace--;
             return stmt;
         }
 
         ProgramStruct* parseProgram()
         {
+            
             ProgramStruct* program = new ProgramStruct();
             while(this->seeToken().TK!=EOF_TK&&this->noErrorApear){
                 program->statements.push_back(this->parseStatement(true));
@@ -1244,6 +1202,12 @@ void seeIf(StatementStruct* ptr)
     IfStruct* f=(IfStruct*)ptr;
     seeExpression(f->expression);
     seeBlock(f->block);
+    if(f->elseblock!=nullptr)
+    {
+        indexSpace--;
+        showSpaces("Else");
+        seeBlock(f->elseblock);
+    }
     indexSpace--;
 }
 
@@ -1355,6 +1319,13 @@ class CodeGenerator
         std::cout<<"Type:"<<ptr->type<<"\n";
     }
 
+    
+
+    void genIf(StatementStruct* ptr)
+    {
+        IfStruct* f=(IfStruct*)ptr;
+    }
+
     void genAssignVar(StatementStruct* ptr)
     {
         AssignmentVarStruct* var=(AssignmentVarStruct*)ptr;
@@ -1400,7 +1371,7 @@ class CodeGenerator
     if(ptr->type==NodeDeclareVar){this->genDeclareVar(ptr);}
     if(ptr->type==NodeAssignVar){this->genAssignVar(ptr);}
     if(ptr->type==NodeReturn){this->assemblyString+="RETURN\n";}//seeReturn(ptr);}
-    if(ptr->type==NodeIf){this->assemblyString+="IF\n";}//seeIf(ptr);}
+    if(ptr->type==NodeIf){this->genIf(ptr);}
     if(ptr->type==NodeWhile){this->assemblyString+="WHILE\n";}//seeWhile(ptr);}
 
     }
@@ -1450,11 +1421,11 @@ int main(int argc, char** argv){
 
         StatementStruct *ptr=Parser.generateAbstractSyntaxTree();
 
-        //seeProgram(ptr);
+        seeProgram(ptr);
 
-        CodeGenerator CodeGenerator;
+        //CodeGenerator CodeGenerator;
 
-        std::cout<<CodeGenerator.gen(ptr);
+        //std::cout<<CodeGenerator.gen(ptr);
         /*for(auto t:tk){
         std::cout<<t.TK<<" "<<t.value<<"\n";
         }*/
