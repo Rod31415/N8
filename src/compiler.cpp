@@ -764,7 +764,12 @@ class Parser
             
             BlockStruct* block=new BlockStruct;
 
-            this->expectToken(OPEN_BRACKETS_TK);
+            if(!this->expectToken(OPEN_BRACKETS_TK))
+            {
+                block->statements.push_back(this->parseStatement());
+                return block;
+            }
+
             while(!this->expectToken(CLOSE_BRACKETS_TK)&&this->noErrorApear){
                 block->statements.push_back(this->parseStatement());
             }
