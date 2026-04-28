@@ -3,13 +3,10 @@ byte compare(byte a,byte b)
     return a;
 }
 
-int main() {
+int main(int b) {
 
-    int v;
-    if(compare(1, 2)==0)
-        v=1;
-    else
-        v=2;
+    int v=2;
+    int a=b;
 
 }
 

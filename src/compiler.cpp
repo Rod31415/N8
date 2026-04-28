@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include <sstream>
 #include <algorithm>
@@ -1249,20 +1250,28 @@ void seeProgram(StatementStruct* ptr)
 
 struct Variable
 {
-    std::string Identifier;
     Datatype dtype;
     size_t offset;
-    int scope;
+};
+
+struct VarsScope{
+std::unordered_map<std::string, Variable> v;
 };
 
 #define A 0
 #define B 1
+
+enum ErrorCodes{
+NotDefineVar,
+NotKnowChar,
+
+};
+
 class CodeGenerator
 {
     private:
         std::string assemblyString;
-        std::vector<Variable> Vars;
-        int scopeOnStruct=0;    
+        std::vector<VarsScope> Vars;
     public:
 
     CodeGenerator()
@@ -1272,26 +1281,24 @@ class CodeGenerator
 
     Variable seeVar(std::string identifier)
     {
-        for(auto v:Vars)
-        {
-            if(identifier==v.Identifier&&v.scope<=this->scopeOnStruct){
-                std::cout<<"identifier leido: "<<v.Identifier<<" "<<v.offset<<"\n";
-            return v;}
-
-        }
-        return Vars[0];
+        if(Vars.find(identifier)==Vars.end()){
+                std::cout<<"Error: "<<identifier<<" was not define on scope\n";
+        exit(NotDefineVar);}
+        Variable v=Vars[identifier];
+            std::cout<<identifier<<":"<<v.dtype<<" "<<v.offset<<"\n";
+        return v;
     }
 
     void addOffsetVars(size_t offset)
     {
-        for ( auto it = Vars.begin(); it != Vars.end() - 1; ++it) {
-            auto& v = *it;
-            
+        std::cout<<"offset :"<<offset<<"\n";
+        for(auto &v: Vars)
+        {
             v.offset+=offset;
-//            std::cout<<v.Identifier<<v.offset<<" ";
+            std::cout<<v.offset<<" ";
         }
+        std::cout<<"\n";
 
-//        std::cout<<"\n";
     }
 
     void genExpression(StatementStruct* ptr,std::string AorB)
@@ -1306,6 +1313,7 @@ class CodeGenerator
         {
             IdentifierStruct* id=(IdentifierStruct*)ptr;
             this->assemblyString+=" add FP,SP#"+std::to_string(seeVar(id->value).offset)+"\n ld "+AorB+"[FP]\n";
+            return;
         }
         if(ptr->type==NodeBinaryExpr)
         {
@@ -1328,6 +1336,7 @@ class CodeGenerator
 
     void genIf(StatementStruct* ptr)
     {
+        this->assemblyString+="IF\n";
         IfStruct* f=(IfStruct*)ptr;
     }
 
@@ -1344,8 +1353,9 @@ class CodeGenerator
     {
         DeclareVarStruct* var=(DeclareVarStruct*)ptr;
         this->assemblyString+=" sub SP#"+std::to_string(sizeOfDataType(var->dtype))+"\n";
-        Vars.push_back({var->identifier,var->dtype,0,this->scopeOnStruct});
         addOffsetVars(sizeOfDataType(var->dtype));
+        Vars[var->identifier]={var->dtype,0};
+        std::cout<<var->identifier<<" ";
         if(var->expr!=nullptr){
             this->genAssignVar((StatementStruct*)var->expr);
         }
@@ -1362,7 +1372,7 @@ class CodeGenerator
         for(auto a:fn->args->statements)
         {
             DeclareVarStruct* deV=(DeclareVarStruct*)a;
-            size+=sizeOfDataType(deV->dtype);
+            this->genDeclareVar(deV);
         }
             
             this->genBlock(fn->block);
@@ -1383,11 +1393,9 @@ class CodeGenerator
     
     void genBlock(StatementStruct* ptr)
     {
-        this->scopeOnStruct++;
         BlockStruct* p=(BlockStruct*)ptr;
         for(auto s: p->statements)
             this->genStatement(s);
-        this->scopeOnStruct--;
     }   
 
 
@@ -1426,11 +1434,11 @@ int main(int argc, char** argv){
 
         StatementStruct *ptr=Parser.generateAbstractSyntaxTree();
 
-        seeProgram(ptr);
+        //seeProgram(ptr);
 
-        //CodeGenerator CodeGenerator;
+        CodeGenerator CodeGenerator;
 
-        //std::cout<<CodeGenerator.gen(ptr);
+        std::cout<<CodeGenerator.gen(ptr);
         /*for(auto t:tk){
         std::cout<<t.TK<<" "<<t.value<<"\n";
         }*/
