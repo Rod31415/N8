@@ -1,16 +1,158 @@
+  .def cFalse 0
+  .def cTrue 1
+
 init:
-    pshsw #0x4234
-    pshsw #0x1132
-    
-    add FP,SP#2
-    
-    ld A[FP]
-    sub FP#2
-    add A{FP}
+  pshw #osString
+  jsr #printString
+.first:
+  ld A#0
+  mov A,SP
+  pshw #inputBuffer
+.loop:
+  ld A&0x2000
+  cmp A#0x0
+  
+; Hay una letra en el buffer
+  bne #.keyDetected
+  jmp #.loop
+.keyDetected:
+  st A&0x2000
+  cmp A#0xd
+  jpz #.newline
+;Guarda la letra en stack pointer  
+  psh A
+  mov SP,FP
+; input buffer
+  add FP,SP#3
+; Guardo la letra en FP
+  st A[&FP]
 
-    add FP#3
-    ld A[FP]
-    sub FP#2
-    adc A{FP}
+  pshb #3+3
+  jsr #addFrameWord
+  add SP#1
+; Rescato la letra del stack pointer
+  pop A
+; Si es enter
+  cmp A#0xd
+  jpz #.newline
 
-    hlt
+  rts
+.newline:
+  ld A#cFalse
+  beq #compareCommands
+  jmp #.first
+
+printString:
+  mov SP,FP  
+.loop:
+; Input string FP
+  add FP,SP#2
+  ld A[&FP] ; Cargo la letra
+  cmp A#0x0
+  jpz #.end
+  st A&0x2000
+  pshb #3+2
+  jsr #addFrameWord
+  add SP#1
+  jmp #.loop
+
+.end:
+  rts
+
+compareCommands:
+  ; Paso los dos string para comparar
+  pshw #inputBuffer
+  pshw #ListString
+  jsr #compareString
+  add SP#4
+  brk
+  cmp A#cTrue
+  beq #isList
+  jsr #noCommand
+  rts
+
+isList:
+  pshw #ListWel
+  jsr #printString
+  add SP#2
+  rts
+
+noCommand:
+  pshw #ListWel
+  jsr #printString
+  add SP#2
+  rts
+
+compareString:
+  mov SP,FP
+.loop:
+  add FP,SP#4 ;primer input
+  ld A[&FP]
+  add FP,SP#2
+  ld B[&FP]
+  cmp
+  jnz #.retFalse
+  cmp A#0
+  jpz #.retTrue
+  
+  pshb #4+3
+  jsr #addFrameWord
+  add SP#1
+  
+  pshb #2+3
+  jsr #addFrameWord
+  add SP#1
+  jmp #.loop
+
+.retFalse:
+  ld A#cFalse
+  rts
+
+.retTrue:
+  ld A#cTrue
+  rts
+
+
+addFrameWord:
+  mov SP,FP
+  add FP,SP#2
+  
+  add FP,SP[FP]
+;LSB suma 1
+  ld A[FP]
+  add A#1
+  st A[FP]
+
+  add FP#1
+  
+; MSB acarreo
+  ld A[FP]
+  adc A#0x0
+  st A[FP]
+  
+  
+  rts
+
+ListString:
+  .string "LIST",0
+ListWel:
+  .string "Bienvenido a la lista",0xa,0
+
+RunString:
+  .string "RUN",0
+LoadString:
+  .string "LOAD",0
+
+noCmd:
+  .string "No se encontro el comando",0xa,0
+
+osString:
+  .string "    NeiOS",0xd,0xa
+  .string " COMMANDS",0xd,0xa
+  .string "LIST",0xd,0xa
+  .string "RUN",0xd,0xa
+  .string "LOAD",0xd,0xa,0x0
+inputBuffer:
+  .res 32
+end:
+  hlt

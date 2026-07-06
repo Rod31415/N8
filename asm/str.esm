@@ -1,0 +1,78 @@
+  .def cFalse 0
+  .def cTrue 1
+init:
+    pshw #string1
+    pshw #string2
+    jsr #compareString
+    cmp A#cTrue
+    hlt
+
+compareString:
+  mov SP,FP           ; FP = SP (referencia fija para calcular offsets)
+
+.loop:
+  ; --- letra actual de string1 ---
+  add FP,SP#4         ; FP = SP+4 -> apunta a donde está guardada &string1
+  ld A[&FP]           ; A = *string1  (doble indirección: FP guarda un puntero)
+
+  ; --- letra actual de string2 ---
+  add FP,SP#2         ; FP = SP+2 -> apunta a donde está guardada &string2
+  ld B[&FP]           ; B = *string2
+    
+  ; --- comparar ---
+  cmp                 ; A - B, sin operando: compara los registros ya cargados
+
+brk
+  
+  jnz #.retFalse      ; distintas -> no son iguales
+
+  cmp A#0             ; ¿llegamos al fin de ambos strings (terminador 0)?
+  jpz #.retTrue       ; si A (la letra de string1) es 0 -> iguales hasta el final
+
+  ; --- avanzar los dos punteros (reusa addFrameWord) ---
+  ; el "+3" es porque, desde acá, ya pusheamos 1 byte de offset + 2 de retorno
+  ; de más respecto del frame de compareString, así que hay que compensarlo
+  pshb #4+3
+  jsr #addFrameWord
+  add SP#1
+
+  pshb #2+3
+  jsr #addFrameWord
+  add SP#1
+  
+  jmp #.loop
+
+.retFalse:
+  ld A#'N'
+    st A&0x2000
+  rts
+
+.retTrue:
+  ld A#'S'
+    st A&0x2000
+  rts
+
+addFrameWord:
+  mov SP,FP
+  add FP,SP#2
+  
+  add FP,SP[FP]
+;LSB suma 1
+  ld A[FP]
+  add A#1
+  st A[FP]
+
+  add FP#1
+  
+; MSB acarreo
+  ld A[FP]
+  adc A#0x0
+  st A[FP]
+  
+  
+  rts
+
+string1:
+    .string "NUEVO ",0
+string2:
+    .string "NUEVO",0

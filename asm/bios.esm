@@ -1,6 +1,4 @@
 init:
-        jsr #ansi_clearscreen
-        jsr #ansi_home
         ld A#<.str
         ld B#>.str
         jsr #printstring
@@ -313,7 +311,6 @@ ansi_right:
         jsr #ansi_move
         ld A#'G'
         st A&0x2000
-
 ansi_clearscreen:
         jsr #ansi_control
         ld A#'2'

@@ -1279,14 +1279,14 @@ class CodeGenerator
         this->assemblyString="init: \n jmp #main\n";
     }
 
-    Variable seeVar(std::string identifier)
+    /*Variable seeVar(std::string identifier)
     {
-        if(Vars.find(identifier)==Vars.end()){
+        /*if(Vars.fir.find(identifier)==Vars.end()){
                 std::cout<<"Error: "<<identifier<<" was not define on scope\n";
         exit(NotDefineVar);}
         Variable v=Vars[identifier];
             std::cout<<identifier<<":"<<v.dtype<<" "<<v.offset<<"\n";
-        return v;
+        return nullptr;
     }
 
     void addOffsetVars(size_t offset)
@@ -1312,7 +1312,7 @@ class CodeGenerator
         if(ptr->type==NodeIdentifier)
         {
             IdentifierStruct* id=(IdentifierStruct*)ptr;
-            this->assemblyString+=" add FP,SP#"+std::to_string(seeVar(id->value).offset)+"\n ld "+AorB+"[FP]\n";
+            //this->assemblyString+=" add FP,SP#"+std::to_string(seeVar(id->value).offset)+"\n ld "+AorB+"[FP]\n";
             return;
         }
         if(ptr->type==NodeBinaryExpr)
@@ -1343,7 +1343,7 @@ class CodeGenerator
     void genAssignVar(StatementStruct* ptr)
     {
         AssignmentVarStruct* var=(AssignmentVarStruct*)ptr;
-        Variable v=seeVar(var->identifier);
+        Variable v;//=seeVar(var->identifier);
         this->genExpression((StatementStruct*)var->expression,"A");
         this->assemblyString+=" add FP,SP#"+std::to_string(v.offset)+"\n st A[FP]\n";
 
@@ -1410,7 +1410,7 @@ class CodeGenerator
     std::string gen(StatementStruct* ptr){
         this->genProgram(ptr);
         return this->assemblyString;
-    }
+    }*/
 };
 
 
@@ -1438,7 +1438,7 @@ int main(int argc, char** argv){
 
         CodeGenerator CodeGenerator;
 
-        std::cout<<CodeGenerator.gen(ptr);
+        //std::cout<<CodeGenerator.gen(ptr);
         /*for(auto t:tk){
         std::cout<<t.TK<<" "<<t.value<<"\n";
         }*/

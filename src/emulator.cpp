@@ -7,49 +7,51 @@
 #define DEBUG1
 #define DEBUG2
 */
-#define SBC   0b100000000000000000000000
-#define ROT   0b010000000000000000000000
+
+// #define DEBUG1
+
+#define SBC 0b100000000000000000000000
+#define ROT 0b010000000000000000000000
 #define NOFLG 0b001000000000000000000000
-#define XI    0b000100000000000000000000
-#define XO    0b000010000000000000000000
-#define FPI   0b000001000000000000000000
-#define SPI   0b000000100000000000000000
-#define CI    0b000000010000000000000000
+#define XI 0b000100000000000000000000
+#define XO 0b000010000000000000000000
+#define FPI 0b000001000000000000000000
+#define SPI 0b000000100000000000000000
+#define CI 0b000000010000000000000000
 
-#define SPNOT 0b000000001000000000000000  // 0
-#define ME    0b000000000100000000000000  // 1
-#define MI    0b000000000010000000000000  // 1
-#define RI    0b000000000001000000000000  // 1
-#define II    0b000000000000100000000000  // 1
-#define PE    0b000000000000010000000000  // 1
-#define PI    0b000000000000001000000000  // 1
-#define RS    0b000000000000000100000000  // 1
+#define SPNOT 0b000000001000000000000000 // 0
+#define ME 0b000000000100000000000000    // 1
+#define MI 0b000000000010000000000000    // 1
+#define RI 0b000000000001000000000000    // 1
+#define II 0b000000000000100000000000    // 1
+#define PE 0b000000000000010000000000    // 1
+#define PI 0b000000000000001000000000    // 1
+#define RS 0b000000000000000100000000    // 1
 
-#define A3    0b000000000000000010000000 // 1
-#define A2    0b000000000000000001000000 // 1
-#define A1    0b000000000000000000100000 // 0
-#define A0    0b000000000000000000010000 // 1
-#define HI    0b000000000000000000001000 // 1
+#define A3 0b000000000000000010000000    // 1
+#define A2 0b000000000000000001000000    // 1
+#define A1 0b000000000000000000100000    // 0
+#define A0 0b000000000000000000010000    // 1
+#define HI 0b000000000000000000001000    // 1
 #define SPACT 0b000000000000000000000100 // 1
-#define BI    0b000000000000000000000010 // 1
-#define AI    0b000000000000000000000001 // 0
+#define BI 0b000000000000000000000010    // 1
+#define AI 0b000000000000000000000001    // 0
 
 #define ADD A0
 #define AND A1
-#define OR A0|A1
+#define OR A0 | A1
 #define XOR A2
-#define SUB A0|A2
-#define SPO A1|A2
-#define BO A0|A1|A2
+#define SUB A0 | A2
+#define SPO A1 | A2
+#define BO A0 | A1 | A2
 #define AO A3
-#define RO A0|A3
-#define PO A1|A3
-#define ADC A0|A1|A3
-#define CO A2|A3
-#define SHL A0|A2|A3
-#define SHR A1|A2|A3
-#define FPO A0|A1|A2|A3
-
+#define RO A0 | A3
+#define PO A1 | A3
+#define ADC A0 | A1 | A3
+#define CO A2 | A3
+#define SHL A0 | A2 | A3
+#define SHR A1 | A2 | A3
+#define FPO A0 | A1 | A2 | A3
 
 #define PIH PI | HI
 #define PIL PI
@@ -57,6 +59,9 @@
 #define POL PO
 #define MIH MI | HI
 #define MIL MI
+
+bool IsHalted = false;
+bool isRevised=false;
 
 struct MicrocodeSignalStruct
 {
@@ -86,8 +91,8 @@ MicrocodeSignalStruct Signals[] = {
     {"II", II},
     {"PE", PE},
     {"RS", RS},
-    {"SPI",SPI},
-    {"FPI",FPI},
+    {"SPI", SPI},
+    {"FPI", FPI},
     {"SPACT", SPACT},
     {"AI", AI},
     {"BI", BI},
@@ -108,15 +113,15 @@ MicrocodeSignalStruct Signals[] = {
     {"FPO", FPO},
     {"PIH", PI | HI},
     {"PIL", PI, HI},
-    {"POH", PO | HI,A0|A2},
-    {"POL", PO, HI|A0|A2},
+    {"POH", PO | HI, A0 | A2},
+    {"POL", PO, HI | A0 | A2},
     {"MIH", MI | HI},
     {"MIL", MI, HI},
     {"XI", XI},
     {"XO", XO},
-    {"NOFLG",NOFLG},
-    {"ROT",ROT},
-    {"SBC",SBC},
+    {"NOFLG", NOFLG},
+    {"ROT", ROT},
+    {"SBC", SBC},
 };
 
 unsigned int mCode[16384];
@@ -154,23 +159,27 @@ bool isSignal(std::string name, unsigned int signals)
 
 void sendByte(Byte data) { std::cout << data; }
 Byte recvByte()
-{       
-/*#ifndef DEBUG2
-        if (kbhit())
+{
+        /*#ifndef DEBUG2
+                if (kbhit())
+                {
+                        char a = getch();
+                        if (a == 0xD)
+                                a = 0xA;
+                        return a;
+                }
+                return 0;
+        #else*/
+        char a = getch();
+        if (a == 27)
         {
-                char a = getch();
-                if (a == 0xD)
-                        a = 0xA;
-                return a;
+                IsHalted = true;
         }
-        return 0;
-#else*/ 
-            char a=getch();
-            return a;
-/*#endif*/
+        return a;
+        /*#endif*/
 }
 
-bool enableFlags=true;
+bool enableFlags = true;
 
 void executeMicroRising(unsigned int signal)
 {
@@ -183,12 +192,14 @@ void executeMicroRising(unsigned int signal)
                 }
                 CPUSTATE.SP = CPUSTATE.SP | 0xff00;
         }
-        if (isSignal("SPI", signal)){
+        if (isSignal("SPI", signal))
+        {
 
                 CPUSTATE.SP = CPUSTATE.Bus;
                 CPUSTATE.SP = CPUSTATE.SP | 0xff00;
         }
-        if (isSignal("FPI", signal)){
+        if (isSignal("FPI", signal))
+        {
 
                 CPUSTATE.FP = CPUSTATE.Bus;
                 CPUSTATE.FP = CPUSTATE.FP | 0xff00;
@@ -208,7 +219,6 @@ void executeMicroRising(unsigned int signal)
                 {
                         sendByte(CPUSTATE.Bus);
                 }
-
         }
         if (isSignal("II", signal))
                 CPUSTATE.IR = CPUSTATE.Bus;
@@ -232,11 +242,13 @@ void executeMicroRising(unsigned int signal)
 
 void setFlags()
 {
-        if(enableFlags){
-        CPUSTATE.ZeroF = ((CPUSTATE.Bus & 0xFF) == 0);
-        CPUSTATE.CarryF = ((CPUSTATE.Bus & 0x100) == 0x100);}
+        if (enableFlags)
+        {
+                CPUSTATE.ZeroF = ((CPUSTATE.Bus & 0xFF) == 0);
+                CPUSTATE.CarryF = ((CPUSTATE.Bus & 0x100) == 0x100);
+        }
         CPUSTATE.Bus = CPUSTATE.Bus & 0xFF;
-        enableFlags=true;
+        enableFlags = true;
 }
 
 void executeMicroFalling(unsigned int signal)
@@ -270,8 +282,8 @@ void executeMicroFalling(unsigned int signal)
                         CPUSTATE.Bus = recvByte();
                 }
         }
-        if(isSignal("NOFLG",signal))
-            enableFlags=false;
+        if (isSignal("NOFLG", signal))
+                enableFlags = false;
         if (isSignal("POH", signal))
                 CPUSTATE.Bus = ((CPUSTATE.PC >> 8) & 0xFF);
         if (isSignal("POL", signal))
@@ -315,21 +327,22 @@ void executeMicroFalling(unsigned int signal)
         if (isSignal("SHL", signal))
         {
                 CPUSTATE.Bus = (CPUSTATE.A << 1);
-                if(isSignal("ROT", signal))
-                CPUSTATE.Bus = CPUSTATE.Bus|CPUSTATE.CarryF;
+                if (isSignal("ROT", signal))
+                        CPUSTATE.Bus = CPUSTATE.Bus | CPUSTATE.CarryF;
                 setFlags();
         }
         if (isSignal("SHR", signal))
         {
                 CPUSTATE.Bus = (CPUSTATE.A >> 1);
-                if(isSignal("ROT", signal))
-                CPUSTATE.Bus = CPUSTATE.Bus|(CPUSTATE.CarryF<<7);
+                if (isSignal("ROT", signal))
+                        CPUSTATE.Bus = CPUSTATE.Bus | (CPUSTATE.CarryF << 7);
                 setFlags();
         }
 }
 
 int main(int argc, char **argv)
 {
+
         /*if (argc != 2)
         {
                 std::cout << "emulator <filename>\n";
@@ -339,7 +352,7 @@ int main(int argc, char **argv)
         unsigned char *rMCode1 = reinterpret_cast<unsigned char *>(malloc(16384)),
                       *rMCode2 = reinterpret_cast<unsigned char *>(malloc(16384)),
                       *rMCode3 = reinterpret_cast<unsigned char *>(malloc(16384));
-        
+
         std::ifstream microcodeR1, microcodeR2, microcodeR3;
         microcodeR1.open("microcode1.bin", std::ios::binary);
         microcodeR2.open("microcode2.bin", std::ios::binary);
@@ -352,7 +365,7 @@ int main(int argc, char **argv)
 
         for (; i < 16384; i++)
         {
-                mCode[i] = rMCode1[i] | (rMCode2[i] << 8) | (rMCode3[i]<<16);
+                mCode[i] = rMCode1[i] | (rMCode2[i] << 8) | (rMCode3[i] << 16);
         }
         free(rMCode1);
         free(rMCode2);
@@ -382,38 +395,84 @@ int main(int argc, char **argv)
                 {
 #ifdef DEBUG0
 
-                        c=getch();
                         // if(CPUSTATE.IR==118)
                         showMicro(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 4096 + CPUSTATE.ZeroF * 8192]);
 #endif
+                        if (isRevised)
+                                showMicro(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 4096 + CPUSTATE.ZeroF * 8192]);
                         executeMicroFalling(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 4096 + CPUSTATE.ZeroF * 8192]);
                         executeMicroRising(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 4096 + CPUSTATE.ZeroF * 8192]);
                 }
 #ifdef DEBUG1
-                std::cout <<std::hex<< "\nIR:" << static_cast<int>(CPUSTATE.IR) << " A:" << static_cast<int>(CPUSTATE.A)
+                std::cout << std::hex << "\nIR:" << static_cast<int>(CPUSTATE.IR) << " A:" << static_cast<int>(CPUSTATE.A)
                           << " B:" << static_cast<int>(CPUSTATE.B) << " Z:" << static_cast<int>(CPUSTATE.ZeroF)
                           << " C:" << static_cast<int>(CPUSTATE.CarryF) << " PC:" << static_cast<int>(CPUSTATE.PC)
-                          << " SP:" << static_cast<int>(CPUSTATE.SP) <<"\n"
-                          << " FP:" << static_cast<int>(CPUSTATE.FP) <<"\n";
-                        if(CPUSTATE.SP>=0xfff0){
-                            int s=CPUSTATE.SP-0xfff0;
-                            for(i=0;i<s;i++)std::cout<<"   ";
-                            std::cout<<"P\n";
-                        }
-                        if(CPUSTATE.FP>=0xfff0){
-                            int s=CPUSTATE.FP-0xfff0;
-                            for(i=0;i<s;i++)std::cout<<"   ";
-                            std::cout<<"F\n";
-                        }
-                for(i=0;i<16;i++){
-                        std::cout<<std::hex<<std::setw(2)<<std::setfill('0')<<static_cast<int>(CPUSTATE.RAM[i+0xfff0])<<" ";
+                          << " SP:" << static_cast<int>(CPUSTATE.SP) << "\n"
+                          << " FP:" << static_cast<int>(CPUSTATE.FP) << "\n";
+                if (CPUSTATE.SP >= 0xfff0)
+                {
+                        int s = CPUSTATE.SP - 0xfff0;
+                        for (i = 0; i < s; i++)
+                                std::cout << "   ";
+                        std::cout << "P\n";
                 }
-                std::cout<<std::dec<< "\n";
-               
+                if (CPUSTATE.FP >= 0xfff0)
+                {
+                        int s = CPUSTATE.FP - 0xfff0;
+                        for (i = 0; i < s; i++)
+                                std::cout << "   ";
+                        std::cout << "F\n";
+                }
+                for (i = 0; i < 16; i++)
+                {
+                        std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(CPUSTATE.RAM[i + 0xfff0]) << " ";
+                }
+                std::cout << std::dec << "\n";
 
 #endif
-                if(CPUSTATE.IR==0xff||c==27)
-                    break;
+                
+                if (CPUSTATE.IR == 0xfe || isRevised)
+                {
+                        std::cout << std::hex << "\nIR:" << static_cast<int>(CPUSTATE.IR) << " A:" << static_cast<int>(CPUSTATE.A)
+                                  << " B:" << static_cast<int>(CPUSTATE.B) << " Z:" << static_cast<int>(CPUSTATE.ZeroF)
+                                  << " C:" << static_cast<int>(CPUSTATE.CarryF) << " PC:" << static_cast<int>(CPUSTATE.PC)
+                                  << " SP:" << static_cast<int>(CPUSTATE.SP) << "\n"
+                                  << " FP:" << static_cast<int>(CPUSTATE.FP) << "\n";
+                        if (CPUSTATE.SP >= 0xffe0)
+                        {
+                                int s = CPUSTATE.SP - 0xffe0;
+                                for (i = 0; i < s; i++)
+                                        std::cout << "   ";
+                                std::cout << "P\n";
+                        }
+                        if (CPUSTATE.FP >= 0xffe0)
+                        {
+                                int s = CPUSTATE.FP - 0xffe0;
+                                for (i = 0; i < s; i++)
+                                        std::cout << "   ";
+                                std::cout << "F\n";
+                        }
+                        for (i = 0; i < 32; i++)
+                        {
+                                std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(CPUSTATE.RAM[i + 0xffe0]) << " ";
+                        }
+                        std::cout << std::dec << "\n";
+                        std::cout << "-------------------------\n";
+                        char a = getch();
+                        if (a == 27)
+                        {
+                                IsHalted = true;
+                        }
+                        isRevised=false;
+                }
+                if (CPUSTATE.IR == 0xfd)
+                        isRevised=true;
+                
+                if (CPUSTATE.IR == 0xff || IsHalted)
+                {
+                        std::cout << "\nProgram halted!!\n";
+                        break;
+                }
         }
 }
 // 8100:03 19 81 5B 00 68 16 81 07 00 20 02 19 81 14 01 07 19 81 62 00 81 62 00 00 1B 81 68 6F 6C 61 20 42 55 45 4E 41 53 20 74 61 72 64 65 73 0A

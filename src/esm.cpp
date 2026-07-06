@@ -23,6 +23,8 @@ struct MemInst
         bool msb;
         int add;
         int lineDefined;
+        bool isInst = false;
+        bool isWord = false;
 };
 
 struct Label
@@ -42,263 +44,262 @@ size_t LabelScopeIndex = 0;
 
 Instruction Instructions[] = {
 
-{"HLT",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"BCC #",2},
-{"BCS #",2},
-{"BNE #",2},
-{"BEQ #",2},
-{"JSR #",2},
-{"RTS",0},
-{"PSHW [FP]",0},
-{"PSHB [FP]",0},
-{"PSHSW &",2},
-{"PSHW &",2},
-{"PSHB &",2},
-{"PSHSW #",2},
-{"PSHW #",2},
-{"PSHB #",1},
-{"PSH B",0},
-{"PSH A",0},
-{"ROR A[&FP]",0},
-{"ROR A[FP]",0},
-{"ROR [FP]",0},
-{"ROR A&",2},
-{"ROR &",2},
-{"ROR",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"POPW [FP]",0},
-{"POPB [FP]",0},
-{"POPW &",2},
-{"POPB &",2},
-{"POPW AB",0},
-{"POP B",0},
-{"POP A",0},
-{"SHR A[&FP]",0},
-{"SHR A[FP]",0},
-{"SHR [FP]",0},
-{"SHR A&",2},
-{"SHR &",2},
-{"SHR",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"SHR4 A{FP}",0},
-{"SHR4 A[FP]",0},
-{"SHR4 [FP]",0},
-{"SHR4 A&",2},
-{"SHR4 &",2},
-{"SHR4",0},
-{"|",0},
-{"|",0},
-{"MOV FP,A",0},
-{"MOV SP,A",0},
-{"MOV A,FP",0},
-{"MOV A,SP",0},
-{"MOV FP,SP",0},
-{"MOV SP,FP",0},
-{"MOV B,A",0},
-{"MOV A,B",0},
-{"ROL A{FP}",0},
-{"ROL A[FP]",0},
-{"ROL [FP]",0},
-{"ROL A&",2},
-{"ROL &",2},
-{"ROL",0},
-{"|",0},
-{"|",0},
-{"ST B[&FP]",0},
-{"ST A[&FP]",0},
-{"ST B%",2},
-{"ST A%",2},
-{"ST B[FP]",0},
-{"ST A[FP]",0},
-{"ST B&",2},
-{"ST A&",2},
-{"SHL A{FP}",0},
-{"SHL A[FP]",0},
-{"SHL [FP]",0},
-{"SHL A&",2},
-{"SHL &",2},
-{"SHL",0},
-{"LD B[&FP]",0},
-{"LD A[&FP]",0},
-{"LD B%",2},
-{"LD A%",2},
-{"LD B[FP]",0},
-{"LD A[FP]",0},
-{"LD B&",2},
-{"LD A&",2},
-{"LD B#",1},
-{"LD A#",1},
-{"SHL4 A{FP}",0},
-{"SHL4 A[FP]",0},
-{"SHL4 [FP]",0},
-{"SHL4 A&",2},
-{"SHL4 &",2},
-{"SHL4",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"CMP B[&FP]",0},
-{"CMP A[&FP]",0},
-{"CMP B[FP]",0},
-{"CMP A[FP]",0},
-{"CMP B&",2},
-{"CMP A&",2},
-{"CMP B#",1},
-{"CMP A#",1},
-{"CMP",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"XOR B{FP}",0},
-{"XOR A{FP}",0},
-{"XOR B[FP]",0},
-{"XOR A[FP]",0},
-{"XOR [FP]",0},
-{"XOR B&",2},
-{"XOR A&",2},
-{"XOR &",2},
-{"XOR B#",1},
-{"XOR A#",1},
-{"XOR B",0},
-{"XOR A",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"OR B{FP}",0},
-{"OR A{FP}",0},
-{"OR B[FP]",0},
-{"OR A[FP]",0},
-{"OR [FP]",0},
-{"OR B&",2},
-{"OR A&",2},
-{"OR &",2},
-{"OR B#",1},
-{"OR A#",1},
-{"OR B",0},
-{"OR A",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"AND B{FP}",0},
-{"AND A{FP}",0},
-{"AND B[FP]",0},
-{"AND A[FP]",0},
-{"AND [FP]",0},
-{"AND B&",2},
-{"AND A&",2},
-{"AND &",2},
-{"AND B#",1},
-{"AND A#",1},
-{"AND B",0},
-{"AND A",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"SBC B{FP}",0},
-{"SBC A{FP}",0},
-{"SBC B[FP]",0},
-{"SBC A[FP]",0},
-{"SBC [FP]",0},
-{"SBC B&",2},
-{"SBC A&",2},
-{"SBC &",2},
-{"SBC B#",1},
-{"SBC A#",1},
-{"SBC B",0},
-{"SBC A",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"ADC B{FP}",0},
-{"ADC A{FP}",0},
-{"ADC B[FP]",0},
-{"ADC A[FP]",0},
-{"ADC [FP]",0},
-{"ADC B&",2},
-{"ADC A&",2},
-{"ADC &",2},
-{"ADC B#",1},
-{"ADC A#",1},
-{"ADC B",0},
-{"ADC A",0},
-{"|",0},
-{"SUB B{FP}",0},
-{"SUB A{FP}",0},
-{"SUB B[FP]",0},
-{"SUB A[FP]",0},
-{"SUB [FP]",0},
-{"SUB B&",2},
-{"SUB A&",2},
-{"SUB &",2},
-{"SUB FP,SP#",1},
-{"SUB FP#",1},
-{"SUB SP#",1},
-{"SUB B#",1},
-{"SUB A#",1},
-{"SUB B",0},
-{"SUB A",0},
-{"|",0},
-{"ADD B{FP}",0},
-{"ADD A{FP}",0},
-{"ADD B[FP]",0},
-{"ADD A[FP]",0},
-{"ADD [FP]",0},
-{"ADD B&",2},
-{"ADD A&",2},
-{"ADD &",2},
-{"ADD FP,SP#",1},
-{"ADD FP#",1},
-{"ADD SP#",1},
-{"ADD B#",1},
-{"ADD A#",1},
-{"ADD B",0},
-{"ADD A",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"|",0},
-{"JNZ &",2},
-{"JNZ #",2},
-{"JNC &",2},
-{"JNC #",2},
-{"JPZ &",2},
-{"JPZ #",2},
-{"JPC &",2},
-{"JPC #",2},
-{"JMP &",2},
-{"JMP #",2},
-{"NOP",0},
-
+    {"HLT", 0},
+    {"BRK", 0},
+    {"REV", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"BCC #", 2},
+    {"BCS #", 2},
+    {"BNE #", 2},
+    {"BEQ #", 2},
+    {"JSR #", 2},
+    {"RTS", 0},
+    {"PSHW [FP]", 0},
+    {"PSHB [FP]", 0},
+    {"PSHSW &", 2},
+    {"PSHW &", 2},
+    {"PSHB &", 2},
+    {"PSHSW #", 2},
+    {"PSHW #", 2},
+    {"PSHB #", 1},
+    {"PSH B", 0},
+    {"PSH A", 0},
+    {"ROR A[&FP]", 0},
+    {"ROR A[FP]", 0},
+    {"ROR [FP]", 0},
+    {"ROR A&", 2},
+    {"ROR &", 2},
+    {"ROR", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"POPW [FP]", 0},
+    {"POPB [FP]", 0},
+    {"POPW &", 2},
+    {"POPB &", 2},
+    {"POPW AB", 0},
+    {"POP B", 0},
+    {"POP A", 0},
+    {"SHR A[&FP]", 0},
+    {"SHR A[FP]", 0},
+    {"SHR [FP]", 0},
+    {"SHR A&", 2},
+    {"SHR &", 2},
+    {"SHR", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"SHR4 A{FP}", 0},
+    {"SHR4 A[FP]", 0},
+    {"SHR4 [FP]", 0},
+    {"SHR4 A&", 2},
+    {"SHR4 &", 2},
+    {"SHR4", 0},
+    {"|", 0},
+    {"|", 0},
+    {"MOV FP,A", 0},
+    {"MOV SP,A", 0},
+    {"MOV A,FP", 0},
+    {"MOV A,SP", 0},
+    {"MOV FP,SP", 0},
+    {"MOV SP,FP", 0},
+    {"MOV B,A", 0},
+    {"MOV A,B", 0},
+    {"ROL A{FP}", 0},
+    {"ROL A[FP]", 0},
+    {"ROL [FP]", 0},
+    {"ROL A&", 2},
+    {"ROL &", 2},
+    {"ROL", 0},
+    {"|", 0},
+    {"|", 0},
+    {"ST B[&FP]", 0},
+    {"ST A[&FP]", 0},
+    {"ST B%", 2},
+    {"ST A%", 2},
+    {"ST B[FP]", 0},
+    {"ST A[FP]", 0},
+    {"ST B&", 2},
+    {"ST A&", 2},
+    {"SHL A{FP}", 0},
+    {"SHL A[FP]", 0},
+    {"SHL [FP]", 0},
+    {"SHL A&", 2},
+    {"SHL &", 2},
+    {"SHL", 0},
+    {"LD B[&FP]", 0},
+    {"LD A[&FP]", 0},
+    {"LD B%", 2},
+    {"LD A%", 2},
+    {"LD B[FP]", 0},
+    {"LD A[FP]", 0},
+    {"LD B&", 2},
+    {"LD A&", 2},
+    {"LD B#", 1},
+    {"LD A#", 1},
+    {"SHL4 A{FP}", 0},
+    {"SHL4 A[FP]", 0},
+    {"SHL4 [FP]", 0},
+    {"SHL4 A&", 2},
+    {"SHL4 &", 2},
+    {"SHL4", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"CMP B[&FP]", 0},
+    {"CMP A[&FP]", 0},
+    {"CMP B[FP]", 0},
+    {"CMP A[FP]", 0},
+    {"CMP B&", 2},
+    {"CMP A&", 2},
+    {"CMP B#", 1},
+    {"CMP A#", 1},
+    {"CMP", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"XOR B{FP}", 0},
+    {"XOR A{FP}", 0},
+    {"XOR B[FP]", 0},
+    {"XOR A[FP]", 0},
+    {"XOR [FP]", 0},
+    {"XOR B&", 2},
+    {"XOR A&", 2},
+    {"XOR &", 2},
+    {"XOR B#", 1},
+    {"XOR A#", 1},
+    {"XOR B", 0},
+    {"XOR A", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"OR B{FP}", 0},
+    {"OR A{FP}", 0},
+    {"OR B[FP]", 0},
+    {"OR A[FP]", 0},
+    {"OR [FP]", 0},
+    {"OR B&", 2},
+    {"OR A&", 2},
+    {"OR &", 2},
+    {"OR B#", 1},
+    {"OR A#", 1},
+    {"OR B", 0},
+    {"OR A", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"AND B{FP}", 0},
+    {"AND A{FP}", 0},
+    {"AND B[FP]", 0},
+    {"AND A[FP]", 0},
+    {"AND [FP]", 0},
+    {"AND B&", 2},
+    {"AND A&", 2},
+    {"AND &", 2},
+    {"AND B#", 1},
+    {"AND A#", 1},
+    {"AND B", 0},
+    {"AND A", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"SBC B{FP}", 0},
+    {"SBC A{FP}", 0},
+    {"SBC B[FP]", 0},
+    {"SBC A[FP]", 0},
+    {"SBC [FP]", 0},
+    {"SBC B&", 2},
+    {"SBC A&", 2},
+    {"SBC &", 2},
+    {"SBC B#", 1},
+    {"SBC A#", 1},
+    {"SBC B", 0},
+    {"SBC A", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"ADC B{FP}", 0},
+    {"ADC A{FP}", 0},
+    {"ADC B[FP]", 0},
+    {"ADC A[FP]", 0},
+    {"ADC [FP]", 0},
+    {"ADC B&", 2},
+    {"ADC A&", 2},
+    {"ADC &", 2},
+    {"ADC B#", 1},
+    {"ADC A#", 1},
+    {"ADC B", 0},
+    {"ADC A", 0},
+    {"SUB FP,SP[FP]", 0},
+    {"SUB B{FP}", 0},
+    {"SUB A{FP}", 0},
+    {"SUB B[FP]", 0},
+    {"SUB A[FP]", 0},
+    {"SUB [FP]", 0},
+    {"SUB B&", 2},
+    {"SUB A&", 2},
+    {"SUB &", 2},
+    {"SUB FP,SP#", 1},
+    {"SUB FP#", 1},
+    {"SUB SP#", 1},
+    {"SUB B#", 1},
+    {"SUB A#", 1},
+    {"SUB B", 0},
+    {"SUB A", 0},
+    {"ADD FP,SP[FP]", 0},
+    {"ADD B{FP}", 0},
+    {"ADD A{FP}", 0},
+    {"ADD B[FP]", 0},
+    {"ADD A[FP]", 0},
+    {"ADD [FP]", 0},
+    {"ADD B&", 2},
+    {"ADD A&", 2},
+    {"ADD &", 2},
+    {"ADD FP,SP#", 1},
+    {"ADD FP#", 1},
+    {"ADD SP#", 1},
+    {"ADD B#", 1},
+    {"ADD A#", 1},
+    {"ADD B", 0},
+    {"ADD A", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"|", 0},
+    {"JNZ &", 2},
+    {"JNZ #", 2},
+    {"JNC &", 2},
+    {"JNC #", 2},
+    {"JPZ &", 2},
+    {"JPZ #", 2},
+    {"JPC &", 2},
+    {"JPC #", 2},
+    {"JMP &", 2},
+    {"JMP #", 2},
+    {"NOP", 0},
 
 };
 
@@ -328,31 +329,38 @@ int detectInstructions(std::string aux, char c)
 
         size_t pos = aux.find_first_not_of(' ');
         if (pos != std::string::npos)
-        aux = aux.substr(pos, aux.length());
+                aux = aux.substr(pos, aux.length());
+
+        pos = aux.find_first_not_of(9);
+        if (pos != std::string::npos)
+                aux = aux.substr(pos, aux.length());
 
         std::transform(aux.begin(), aux.end(), aux.begin(),
                        [](unsigned char ch)
                        { return std::toupper(ch); });
         int index = -1;
+        // printf("%d %s\n", pos, aux.c_str());
         for (auto s : Instructions)
         {
                 index++;
-            if(s.mnem=="|")
-                continue;
-            if (aux.rfind(s.mnem,0) ==0)
+                if (s.mnem == "|")
+                        continue;
+                if (aux.rfind(s.mnem, 0) == 0)
                 {
-                        if(c!='\n'){
+                        // printf("%s\n", s.mnem.c_str());
+                        if (c != '\n')
+                        {
                                 for (auto ns : Instructions)
                                 {
 
-                                        if (ns.mnem != s.mnem &&ns.mnem.rfind(s.mnem, 0) == 0)
+                                        if (ns.mnem != s.mnem && ns.mnem.rfind(s.mnem, 0) == 0)
                                         {
-                                            printf("\nparece %s %s %c #",ns.mnem.c_str(),aux.c_str(),c);
+                                                // printf("\nparece %s|%s|%c #", ns.mnem.c_str(), aux.c_str(), c);
                                                 return -1;
                                         }
                                 }
                         }
-                        printf("\n#%s/%x#   ",aux.c_str(),256-index-1);
+                        // printf("\n#%s/%x#   ", aux.c_str(), 256 - index - 1);
                         return index;
                 }
         }
@@ -400,10 +408,12 @@ enum TokenizeState
         COMMENT,
         ORG,
         DB,
+        DW,
         STRING,
         RES,
         PLUS,
-        MINUS
+        MINUS,
+        DEF
 };
 
 int getValue(std::string op)
@@ -445,33 +455,35 @@ void Tokenize(std::string buffer)
         int op = -1, byteIndex = 0;
         for (auto c : buffer)
         {
-                if (c == '\n'){
+                if (c == '\n')
+                {
                         lineIndex++;
-                if(aux=="")continue;}
-                
-                //printf("",aux)
+                        if (aux == "" && c == ' ')
+                                continue;
+                }
+
                 switch (state)
                 {
-
                 case NORMAL:
 
                         op = detectInstructions(aux, c);
-                         
+
                         if (op > -1)
                         {
 
                                 MemInsts[InstIndex].opcode = op;
                                 MemInsts[InstIndex].lineDefined = lineIndex;
+                                MemInsts[InstIndex].isInst = true;
                                 state = OPERAND;
                                 if (Instructions[op].operands == 0)
                                 {
                                         InstIndex++;
                                         state = NORMAL;
                                 }
-                                
-                                printf(" op: %d ",Instructions[op].operands);
+
+                                // printf(" op: %d ", Instructions[op].operands);
                                 byteIndex += Instructions[op].operands + 1;
-                                
+
                                 aux = "";
                         }
 
@@ -493,7 +505,9 @@ void Tokenize(std::string buffer)
                         }
                         if (c == ';')
                         {
+
                                 state = COMMENT;
+                                break;
                         }
                         if (aux.find(".org ") != std::string::npos)
                         {
@@ -505,6 +519,12 @@ void Tokenize(std::string buffer)
                                 state = DB;
                                 aux = "";
                         }
+                        if (aux.find(".dw ") != std::string::npos)
+                        {
+                                state = DW;
+                                aux = "";
+                        }
+
                         if (aux.find(".string ") != std::string::npos)
                         {
                                 state = STRING;
@@ -522,8 +542,15 @@ void Tokenize(std::string buffer)
                                 aux = "";
                                 break;
                         }
+                        if (aux.find(".def") != std::string::npos)
+                        {
 
-                        if (c == '\n' || c == ';')
+                                state = DEF;
+                                aux = "";
+                                break;
+                        }
+
+                        if (c == '\n')
                         {
                                 aux = "";
                                 break;
@@ -535,7 +562,7 @@ void Tokenize(std::string buffer)
 
                         if (c == '\n' || c == '+' || c == '-' || c == ';')
                         {
-                            printf("|%s|",aux.c_str());
+                                // printf("|%s|", aux.c_str());
                                 MemInsts[InstIndex].msb = false;
                                 if (aux.find(">") != std::string::npos)
                                         MemInsts[InstIndex].msb = true;
@@ -579,7 +606,9 @@ void Tokenize(std::string buffer)
                         break;
                 case COMMENT:
                         if (c == '\n')
+                        {
                                 state = NORMAL;
+                        }
                         break;
                 case ORG:
                         if (c == '\n')
@@ -597,8 +626,8 @@ void Tokenize(std::string buffer)
                 case DB:
                         if (c == '\"')
                         {
-                                state=STRING;
-                                aux="";
+                                state = STRING;
+                                aux = "";
                                 break;
                         }
                         else if (c == '\n' || c == ',')
@@ -606,7 +635,7 @@ void Tokenize(std::string buffer)
 
                                 MemInsts[InstIndex].opcode = -2;
                                 MemInsts[InstIndex++].operand = aux;
-                                // printf("|%s|", aux.c_str());
+                                // printf("|%s|", aux.c_s|tr());
                                 state = NORMAL;
                                 aux = "";
                                 byteIndex++;
@@ -619,13 +648,39 @@ void Tokenize(std::string buffer)
                         }
                         aux += c;
                         break;
+                case DW:
+                        if (c == '\"')
+                        {
+                                state = STRING;
+                                aux = "";
+                                break;
+                        }
+                        else if (c == '\n' || c == ',')
+                        {
+
+                                MemInsts[InstIndex].opcode = -2;
+                                MemInsts[InstIndex++].operand = aux;
+                                // printf("|%s|", aux.c_s|tr());
+                                state = NORMAL;
+                                aux = "";
+                                byteIndex += 2;
+                                if (c == ',')
+                                {
+                                        state = DW;
+                                }
+
+                                break;
+                        }
+                        aux += c;
+                        break;
+
                 case STRING:
 
                         if (c == '\"')
                         {
                                 break;
                         }
-                        if (c != ','&&c!='\n')
+                        if (c != ',' && c != '\n')
                         {
                                 MemInsts[InstIndex].opcode = -2;
                                 aux = "'";
@@ -648,15 +703,33 @@ void Tokenize(std::string buffer)
                         printf("|%s", aux.c_str());
                         break;
                 case RES:
-                        //printf("#%s",aux.c_str());
+                        // printf("#%s",aux.c_str());
                         if (c == '\n')
                         {
-                                //printf("ORG VALUE |%04x|\n", InstIndex);
-                                 //printf("BYT VALUE |%04x|\n", byteIndex);
+                                // printf("ORG VALUE |%04x|\n", InstIndex);
+                                // printf("BYT VALUE |%04x|\n", byteIndex);
                                 InstIndex += getValue(aux);
                                 byteIndex += getValue(aux);
                                 // printf("ORG VALUE |%04x|\n", InstIndex);
-                                 //printf("BYT VALUE |%04x|\n", byteIndex);
+                                // printf("BYT VALUE |%04x|\n", byteIndex);
+                                state = NORMAL;
+                                aux = "";
+                                break;
+                        }
+                        aux += c;
+                        break;
+                case DEF:
+                        if (c == ' ')
+                        {
+                                Labels[LabelIndex].name = aux.substr(0, aux.length());
+                                Labels[LabelIndex].global = true;
+                                Labels[LabelIndex].scopeindex = -1;
+                                aux = "";
+                                break;
+                        }
+                        if (c == '\n')
+                        {
+                                Labels[LabelIndex++].index = getValue(aux);
                                 state = NORMAL;
                                 aux = "";
                                 break;
@@ -668,35 +741,35 @@ void Tokenize(std::string buffer)
 }
 bool onFile = true;
 
-
 int main(int argc, char **argv)
 {
 
         if (argc == 1)
         {
-                std::cout << "esm <filename> <options>";
+                std::cout << "esm <filenames> ";
                 return 1;
         }
+        std::string filebuffer = "", line;
+        for (auto i = 0; i < argc; i++)
+        {
+                std::ifstream file(argv[i]);
+                
 
-        std::ifstream file(argv[1]);
-        if (argc == 3)
+                while (std::getline(file, line))
+                {
+                        filebuffer += line;
+                        filebuffer += "\n";
+                }
+        }
+        /*if (argc == 3)
         {
                 onFile = false;
-        }
-
-        std::string filebuffer = "", line;
-
-        while (std::getline(file, line))
-        {
-                filebuffer += line;
-                filebuffer += "\n";
-        }
+        }*/
 
         for (int i = 0; i < 65536; i++)
         {
                 MemInsts[i].opcode = 0;
         }
-
 
         Tokenize(filebuffer);
         std::cout << "\nLabels:\n";
@@ -713,6 +786,7 @@ int main(int argc, char **argv)
         for (size_t i = 0; i < InstIndex; i++)
         {
 
+                // printf(" %02X", newwrite);
                 scopeInstruction = setScope(indexByte);
                 int operand = detectLabel(MemInsts[i].operand);
                 // if(Instructions[MemInsts[i].opcode].operands != 0)
@@ -721,37 +795,46 @@ int main(int argc, char **argv)
                 {
                         // printf(" / %d %d / ",Instructions[MemInsts[i].opcode].operands,MemInsts[i].opcode);
                         operand = getValue(MemInsts[i].operand);
-                        
+
                         if (operand == noReturn)
                         {
-                                printf("<Syntax Error>Label not defined on line %d -%d-\"%s\"\n", MemInsts[i].lineDefined + 1,MemInsts[i].opcode, MemInsts[i].operand.c_str());
+                                printf("<Syntax Error>Label not defined on line %d -%d-\"%s\"\n", MemInsts[i].lineDefined + 1, MemInsts[i].opcode, MemInsts[i].operand.c_str());
                                 return 0;
                         }
+                }
+                else
+                {
+                        MemInsts[i].isWord = true;
                 }
                 if (MemInsts[i].add != noReturn)
                 {
                         operand += MemInsts[i].add;
                 }
                 unsigned int newwrite;
-                 
-                 //printf(" %04x :", i);
+
+                // printf(" %s - %02x\n", Instructions[MemInsts[i].opcode].mnem.c_str(), newwrite);
+                newwrite = MemInsts[i].opcode;
+                if (MemInsts[i].isInst)
+                        newwrite = (255 - MemInsts[i].opcode) & 255;
+                if (newwrite != 0)
+                        printf(" %04x :", indexByte);
 
                 if (MemInsts[i].opcode != -2)
                 {
                         indexByte++;
 
-                        newwrite = (255-MemInsts[i].opcode) & 255;
-
-                        /*if (MemInsts[i].opcode != 0)
+                        if (newwrite != 0)
                                 printf(" %s - %02x", Instructions[MemInsts[i].opcode].mnem.c_str(), newwrite);
-                        */
-                        if (MemInsts[i].opcode != 0)
-                                printf(" %02X", newwrite);
+
+                        // if (newwrite!=0xFF)
+                        //         printf(" %02X", newwrite);
                         if (onFile)
                                 fileOut.write(reinterpret_cast<char *>(&newwrite), 1);
                 }
                 else
                 {
+                        // printf(" %02x", Instructions[MemInsts[i].opcode].mnem.c_str(), newwrite);
+
                         // printf(" DB - ");
                 }
 
@@ -769,10 +852,9 @@ int main(int argc, char **argv)
                                 fileOut.write(reinterpret_cast<char *>(&newwrite), 1);
                         indexByte++;
                 }
-                if (Instructions[MemInsts[i].opcode].operands == 2)
+                if (Instructions[MemInsts[i].opcode].operands == 2 || (MemInsts[i].opcode == -2 && MemInsts[i].isWord))
                 {
 
-                        // if (MemInsts[i].opcode != 0)
                         newwrite = (operand >> 8) & 255;
 
                         printf(" %02X", newwrite);
@@ -781,7 +863,10 @@ int main(int argc, char **argv)
                         indexByte++;
                 }
 
-                // if (MemInsts[i].opcode != 0)
-                 //printf("\n");
+                if (MemInsts[i].isInst)
+                        newwrite = (255 - MemInsts[i].opcode) & 255;
+
+                if (newwrite != 0)
+                        printf("\n");
         }
 }
