@@ -26,7 +26,6 @@ init:
   add FP,SP#3
 ; Guardo la letra en FP
   st A[&FP]
-
   pshb #3+3
   jsr #addFrameWord
   add SP#1
@@ -40,7 +39,10 @@ init:
 .newline:
   ld A#cFalse
   beq #compareCommands
+  jsr #emptyInputBuffer
   jmp #.first
+
+
 
 printString:
   mov SP,FP  
@@ -65,21 +67,56 @@ compareCommands:
   pshw #ListString
   jsr #compareString
   add SP#4
-  brk
   cmp A#cTrue
-  beq #isList
-  jsr #noCommand
-  rts
+  jpz #isList
+
+  pshw #inputBuffer
+  pshw #RunString
+  jsr #compareString
+  add SP#4
+  cmp A#cTrue
+  jpz #isRun
+
+  jmp #noCommand
 
 isList:
+  
   pshw #ListWel
   jsr #printString
   add SP#2
   rts
 
-noCommand:
-  pshw #ListWel
+isRun:
+  
+  pshw #RunWel
   jsr #printString
+  add SP#2
+  rts
+
+noCommand:
+  pshw #noCmd
+  jsr #printString
+  add SP#2
+  rts
+
+emptyInputBuffer:
+
+  pshw #inputBuffer
+  mov SP,FP
+.loop:
+  mov SP,FP
+  ld A[&FP]
+  cmp A#0xff
+  jpz #.end
+  ld A#0
+  st A[&FP]
+  pshb #3+0
+  jsr #addFrameWord
+  add SP#1
+  
+  jmp #.loop
+.end:
+  
   add SP#2
   rts
 
@@ -140,6 +177,8 @@ ListWel:
 
 RunString:
   .string "RUN",0
+RunWel:
+  .string "Se ejecutara el programa",0xa,0
 LoadString:
   .string "LOAD",0
 

@@ -2,11 +2,11 @@
 #include <fstream>
 #include <conio.h>
 #include <iomanip>
-/*
-#define DEBUG0
-#define DEBUG1
-#define DEBUG2
-*/
+
+//#define DEBUG0
+//#define DEBUG1
+//#define DEBUG2
+
 
 // #define DEBUG1
 
@@ -371,16 +371,21 @@ int main(int argc, char **argv)
         free(rMCode2);
         free(rMCode3);
 
-        std::ifstream file("RAM.bin", std::ios::binary);
+        std::ifstream file("RAM.lcf", std::ios::binary);
         file.seekg(0, file.end);
         size_t length = file.tellg();
         char *code = new char[length + 1];
         file.seekg(0, file.beg);
         file.read(code, length);
 
-        for (i = 0; i < length; i++)
+
+        unsigned short initMachineCode=code[1]*0x100 | code[0]&0x00FF;
+        //std::cout<<initMachineCode;
+        
+        for (i = 0; i < length-initMachineCode; i++)
         {
-                CPUSTATE.RAM[i] = code[i];
+                CPUSTATE.RAM[i] = code[i+initMachineCode];
+                //std::cout<<std::hex<<static_cast<unsigned int>(CPUSTATE.RAM[i])<<" ";
         }
 
         CPUSTATE.PC = 0;
@@ -403,7 +408,10 @@ int main(int argc, char **argv)
                         executeMicroFalling(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 4096 + CPUSTATE.ZeroF * 8192]);
                         executeMicroRising(mCode[CPUSTATE.IR * 16 + CPUSTATE.MicroStep + CPUSTATE.CarryF * 4096 + CPUSTATE.ZeroF * 8192]);
                 }
+                
 #ifdef DEBUG1
+                getchar();
+
                 std::cout << std::hex << "\nIR:" << static_cast<int>(CPUSTATE.IR) << " A:" << static_cast<int>(CPUSTATE.A)
                           << " B:" << static_cast<int>(CPUSTATE.B) << " Z:" << static_cast<int>(CPUSTATE.ZeroF)
                           << " C:" << static_cast<int>(CPUSTATE.CarryF) << " PC:" << static_cast<int>(CPUSTATE.PC)
@@ -430,9 +438,17 @@ int main(int argc, char **argv)
                 std::cout << std::dec << "\n";
 
 #endif
-                
+                if (CPUSTATE.IR == 0xfc){
+                                std::cout<<"BREAK POINT "<<static_cast<char*>(&code[code[CPUSTATE.RAM[CPUSTATE.PC-1]+2]])<<"\n";
+                        /*char a = getch();
+                        if (a == 27)
+                        {
+                                IsHalted = true;
+                        }*/
+                }
                 if (CPUSTATE.IR == 0xfe || isRevised)
                 {
+                        
                         std::cout << std::hex << "\nIR:" << static_cast<int>(CPUSTATE.IR) << " A:" << static_cast<int>(CPUSTATE.A)
                                   << " B:" << static_cast<int>(CPUSTATE.B) << " Z:" << static_cast<int>(CPUSTATE.ZeroF)
                                   << " C:" << static_cast<int>(CPUSTATE.CarryF) << " PC:" << static_cast<int>(CPUSTATE.PC)

@@ -1030,6 +1030,7 @@ void seeDatatype(Datatype d)
         case INT:std::cout<<" int ";break;
         case SHORT:std::cout<<" short ";break;
         case CHAR:std::cout<<" char ";break;
+        case BYTE:std::cout<<" byte ";break;
     }
     std::cout<<"\n";
     indexSpace--;
@@ -1438,7 +1439,7 @@ int main(int argc, char** argv){
 
         CodeGenerator CodeGenerator;
 
-        //std::cout<<CodeGenerator.gen(ptr);
+        seeProgram(ptr);
         /*for(auto t:tk){
         std::cout<<t.TK<<" "<<t.value<<"\n";
         }*/

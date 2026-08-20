@@ -47,7 +47,7 @@ Instruction Instructions[] = {
     {"HLT", 0},
     {"BRK", 0},
     {"REV", 0},
-    {"|", 0},
+    {"BRKLAB", 1},
     {"|", 0},
     {"|", 0},
     {"|", 0},
@@ -324,6 +324,9 @@ struct TokenStruct
 int ADDR[65536];
 size_t addrIndex = 0;
 
+std::string BreakLabels[256];
+int BreakLabelIndex = 0;
+
 int detectInstructions(std::string aux, char c)
 {
 
@@ -413,7 +416,8 @@ enum TokenizeState
         RES,
         PLUS,
         MINUS,
-        DEF
+        DEF,
+        BRKLABEL,
 };
 
 int getValue(std::string op)
@@ -433,7 +437,6 @@ int getValue(std::string op)
         }
         else if ((ph == op.c_str() || *ph != 0) && (pd == op.c_str() || *pd != 0))
         {
-
                 return noReturn;
         }
         else if (op.find("0x") != std::string::npos)
@@ -546,6 +549,13 @@ void Tokenize(std::string buffer)
                         {
 
                                 state = DEF;
+                                aux = "";
+                                break;
+                        }
+                        if (aux.find(".brk") != std::string::npos)
+                        {
+
+                                state = BRKLABEL;
                                 aux = "";
                                 break;
                         }
@@ -736,6 +746,20 @@ void Tokenize(std::string buffer)
                         }
                         aux += c;
                         break;
+                case BRKLABEL:
+                        if (c == '\n')
+                        {
+                                BreakLabels[BreakLabelIndex] = aux;
+                                MemInsts[InstIndex].opcode = 0x03;
+                                MemInsts[InstIndex].operand = std::to_string(BreakLabelIndex++);
+                                MemInsts[InstIndex++].isInst = true;
+                                byteIndex+=2;
+                                state = NORMAL;
+                                aux = "";
+                                break;
+                        }
+                        aux += c;
+                        break;
                 }
         }
 }
@@ -753,7 +777,6 @@ int main(int argc, char **argv)
         for (auto i = 0; i < argc; i++)
         {
                 std::ifstream file(argv[i]);
-                
 
                 while (std::getline(file, line))
                 {
@@ -781,7 +804,27 @@ int main(int argc, char **argv)
 
         std::ofstream fileOut;
         if (onFile)
-                fileOut.open("RAM.bin", std::ios::binary);
+                fileOut.open("RAM.lcf", std::ios::binary);
+        int LabelAddr = BreakLabelIndex+2;
+        for (size_t i = 0; i < BreakLabelIndex; i++)
+        {
+                
+                LabelAddr += BreakLabels[i].length()+1;
+        }
+        fileOut.write(reinterpret_cast<char *>(&LabelAddr), 2);
+        LabelAddr = BreakLabelIndex+2;
+        for (size_t i = 0; i < BreakLabelIndex; i++)
+        {
+                fileOut.write(reinterpret_cast<char *>(&LabelAddr), 1);
+                LabelAddr += BreakLabels[i].length()+1;
+        }
+        LabelAddr=0;
+        for (size_t i = 0; i < BreakLabelIndex; i++)
+        {
+                fileOut.write(BreakLabels[i].c_str(), BreakLabels[i].length());
+                fileOut.write(reinterpret_cast<char *>(&LabelAddr), 1);
+        }
+
         int indexByte = 0;
         for (size_t i = 0; i < InstIndex; i++)
         {
