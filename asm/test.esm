@@ -1,0 +1,159 @@
+    lidt &iterrupt_table
+    sti
+chargeloop:
+    ld A&timer_rise
+    cmp A#0x1
+    jpz #loop
+    jmp #chargeloop
+loop:
+    jsr #keyboard_consume
+    st A&0x2000
+    ld A&timer_rise
+    cmp A#0x1
+    beq #eq
+    jmp #loop
+
+eq:
+    pshb &timer_counter+1
+    jsr #printhexf
+    add SP#1
+    pshb &timer_counter
+    jsr #printhexf
+    add SP#1
+    ld A#0xA
+    st A&0x2000
+    ld A#0x0
+    st A&timer_rise
+    rts
+
+printhexf:
+    add FP,SP#2
+    ld A[FP]
+    and A#0xf 
+    cmp A#0xa
+    bcs #printhex_letter
+
+    add A#'0'
+    psh A
+
+
+    ld A[FP]
+    shr4
+    cmp A#0xa
+    bcs #printhex_letter
+
+    add A#'0'
+    st A&0x2000
+
+    pop A
+    st A&0x2000
+
+    rts
+printhex_letter:
+    add A#7
+    rts
+
+iterrupt_table:
+    .dw timer_handler
+    .dw keyboard_handler
+    .dw uart_handler
+    .dw syscall_handler
+
+timer_rise:
+    .res 1
+timer_handler:
+    ld A&timer_counter
+    add A#0x1
+    st A&timer_counter
+
+    ld A&timer_counter+1
+    adc A#0x0
+    st A&timer_counter+1
+
+    ld A&timer_counter+2
+    adc A#0x0
+    st A&timer_counter+2
+
+    ld A&timer_counter+3
+    adc A#0x0
+    st A&timer_counter+3
+
+    ld A#0x1
+    st A&timer_rise
+
+    iret
+timer_counter:
+    .res 4
+
+keyboard_handler:
+
+    ld A&keyboard_counter
+    add A#0x1
+    st A&keyboard_counter
+
+    ld A&keyboard_counter+1
+    adc A#0x0
+    st A&keyboard_counter+1
+
+    ld A&0x2000
+    st A%keyboard_counter
+    iret
+
+keyboard_consume:
+    ld A%keyboard_counter
+    cmp A#0xff
+    jpz #.new
+    psh A
+    ld A&keyboard_counter
+    sub A#0x1
+    st A&keyboard_counter
+
+    ld A&keyboard_counter+1
+    sbc A#0x0
+    pop A
+    rts
+.new:
+    ld A#0x0
+    rts
+keyboard_counter:
+  .dw keyboard_buffer
+.db 0xff
+keyboard_buffer:
+
+  .res 32
+
+uart_handler:
+    nop
+    iret
+
+
+syscall_handler:
+    mov SP,FP
+    ld A[FP]
+    add FP,SP#1
+    ld B[FP]
+    add FP,SP#6
+    cmp A#0x1
+    jpz #READ_SYS
+    cmp A#0x2
+    jpz #WRITE_SYS
+    iret
+
+READ_SYS:
+    cmp B#0x0
+    jpz #READ_IO
+    iret
+READ_IO:
+    iret
+
+WRITE_SYS:
+    cmp B#0x0
+    jpz #WRITE_IO
+    iret
+WRITE_IO:
+    pshw [FP]
+    add FP#2
+    pshw [FP]
+    jmp #WRITE_IO
+.ret
+    iret

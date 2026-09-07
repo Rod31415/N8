@@ -9,7 +9,7 @@
 
 #include <conio.h>
 
-
+#include "instructions.h"
 
 //////////////////////////// LEXER /////////////////////////
 
@@ -48,8 +48,6 @@ enum TokenType{
     COMMA_TK,
 
     IDENTIFIER_TK,
-
-    
 
 
     NUMBER_TK,

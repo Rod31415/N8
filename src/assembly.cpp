@@ -29,56 +29,72 @@
 #define Y0  0b00000000000000010000000000000000  // 1
 */
 
-#define SBC   0b100000000000000000000000
-#define ROT   0b010000000000000000000000
-#define NOFLG 0b001000000000000000000000
-#define XI    0b000100000000000000000000
-#define XO    0b000010000000000000000000
-#define FPI   0b000001000000000000000000
-#define SPI   0b000000100000000000000000
-#define CI    0b000000010000000000000000
+#define INT 0b100000000000000000000000
+#define NOFLG 0b010000000000000000000000
+#define XI 0b001000000000000000000000
+#define XO 0b000100000000000000000000
+#define FPI 0b000010000000000000000000
+#define SPI 0b000001000000000000000000
+#define CI 0b000000100000000000000000
+#define SPNOT 0b000000010000000000000000
 
-#define SPNOT 0b000000001000000000000000  // 0
-#define ME    0b000000000100000000000000  // 1
-#define MI    0b000000000010000000000000  // 1
-#define RI    0b000000000001000000000000  // 1
-#define II    0b000000000000100000000000  // 1
-#define PE    0b000000000000010000000000  // 1
-#define PI    0b000000000000001000000000  // 1
-#define RS    0b000000000000000100000000  // 1
+#define ME 0b000000001000000000000000 // 0
+#define MI 0b000000000100000000000000 // 1
+#define RI 0b000000000010000000000000 // 1
+#define II 0b000000000001000000000000 // 1
+#define PE 0b000000000000100000000000 // 1
+#define PI 0b000000000000010000000000 // 1
+#define RS 0b000000000000001000000000 // 1
+#define A4 0b000000000000000100000000 // 1
 
-#define A3    0b000000000000000010000000 // 1
-#define A2    0b000000000000000001000000 // 1
-#define A1    0b000000000000000000100000 // 0
-#define A0    0b000000000000000000010000 // 1
-#define HI    0b000000000000000000001000 // 1
+#define A3 0b000000000000000010000000    // 1
+#define A2 0b000000000000000001000000    // 1
+#define A1 0b000000000000000000100000    // 0
+#define A0 0b000000000000000000010000    // 1
+#define HI 0b000000000000000000001000    // 1
 #define SPACT 0b000000000000000000000100 // 1
-#define BI    0b000000000000000000000010 // 1
-#define AI    0b000000000000000000000001 // 0
+#define BI 0b000000000000000000000010    // 1
+#define AI 0b000000000000000000000001    // 0
 
 #define ADD A0
 #define AND A1
-#define OR A0|A1
+#define OR A0 | A1
 #define XOR A2
-#define SUB A0|A2
-#define SPO A1|A2
-#define BO A0|A1|A2
+#define SUB A0 | A2
+#define SPO A1 | A2
+#define BO A0 | A1 | A2
 #define AO A3
-#define RO A0|A3
-#define PO A1|A3
-#define ADC A0|A1|A3
-#define CO A2|A3
-#define SHL A0|A2|A3
-#define SHR A1|A2|A3
-#define FPO A0|A1|A2|A3
+#define RO A0 | A3
+#define PO A1 | A3
+#define ADC A0 | A1 | A3
+#define CO A2 | A3
+#define SHL A0 | A2 | A3
+#define SHR A1 | A2 | A3
+#define FPO A0 | A1 | A2 | A3
 
+#define SBC A4
+#define ROT A0 | A4
+#define STI A1 | A4 | HI
+#define CLI A1 | A4
+#define LIDT A0 | A1 | A4
+#define FRI A2 | A4 | HI
+#define FRO A2 | A4
+#define ACK A0 | A2 | A4
+#define IRQO A1 | A2 | A4
+#define CONST A0 | A1 | A2 | A4
+#define OIDT A3 | A4
 
-#define PIH PI|HI
+#define PIH PI | HI
 #define PIL PI
-#define POH PO|HI
+#define POH PO | HI
 #define POL PO
-#define MIH MI|HI
+#define MIH MI | HI
 #define MIL MI
+
+#define LIDTH LIDT | HI
+#define LIDTL LIDT
+#define OIDTH OIDT | HI
+#define OIDTL OIDT
 
 void cpyArray(void *dst, int array[16])
 {
@@ -97,32 +113,30 @@ void cpyArray(void *dst, int array[16])
 #define Z0_C1_N1_PCM0 6
 #define Z1_C1_N1_PCM0 7
 
-enum Types{
-        NOP=0,
+enum Types
+{
+        NOP = 0,
         JMPI,
         JMPA,
         JMPR,
         BRNI,
         BRNA
 
-
 };
 
-struct Opcodes{
+struct Opcodes
+{
         std::string Name;
         unsigned int Microcode[16];
         unsigned char FlagDepender;
         Types t;
 };
 
-
-
-
 int main()
 {
-        Opcodes opcs[256]={
+        Opcodes opcs[256] = {
 
-{"NOP",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+            {"NOP",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"JMP #",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME,RO|PIH,CO|PIL,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,JMPI},
 {"JMP &",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME,RO|MIH,CO|MIL,RO|CI|ME,RO|PIH,CO|PIL,RS,RS,RS,RS,RS,RS,RS},0,JMPA},
 {"JPC #",{POL|MIL,POH|MIH,RO|II|PE|ME,ME|PE,ME|PE,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},1,JMPI},
@@ -137,7 +151,7 @@ int main()
 {"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"INT",{POL|MIL,POH|MIH,RO|II|PE|ME,PE,RO|INT,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"ADD A",{POL|MIL,POH|MIH,RO|II|PE|ME,ADD|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"ADD B",{POL|MIL,POH|MIH,RO|II|PE|ME,ADD|BI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"ADD A#",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|BI|PE,ADD|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
@@ -260,18 +274,18 @@ int main()
 {"CMP A[&FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIH,FPO|MIL,RO|CI|ME,RO|MIH,CO|MIL,RO|BI,SUB,RS,RS,RS,RS,RS,RS},0,NOP},
 {"CMP B[&FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIH,FPO|MIL,RO|CI|ME,RO|MIH,CO|MIL,RO|AI,SUB,RS,RS,RS,RS,RS,RS},0,NOP},
 {"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHL4",{POL|MIL,POH|MIH,RO|II|PE|ME,SHL|AI,SHL|AI,SHL|AI,SHL|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHL4 &",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,SHL|AI,SHL|AI,SHL|AI,SHL|RI,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHL4 A&",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,RO|AI,SHL|AI,SHL|AI,SHL|AI,SHL|AI,RS,RS,RS,RS,RS},0,NOP},
-{"SHL4 [FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,SHL|AI,SHL|AI,SHL|AI,SHL|RI,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHL4 A[FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|AI,SHL|AI,SHL|AI,SHL|AI,SHL|AI,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHL4 A{FP}",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|CI|ME,RO|MIH,CO|MIL,RO|AI,SHL|AI,SHL|AI,SHL|AI,SHL|AI,RS,RS,RS},0,NOP},
+{"SHR",{POL|MIL,POH|MIH,RO|II|PE|ME,SHR|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHR &",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,SHR|RI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHR A&",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,RO|AI,SHR|AI,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHR [FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,SHR|RI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHR A[FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|AI,SHR|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHR A[&FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|CI|ME,RO|MIH,CO|MIL,RO|AI,SHR|AI,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHL",{POL|MIL,POH|MIH,RO|II|PE|ME,SHL|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHL &",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,SHL|RI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHL A&",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,RO|AI,SHL|AI,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHL [FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,SHL|RI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHL A[FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|AI,SHL|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHL A{FP}",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|CI|ME,RO|MIH,CO|MIL,RO|AI,SHL|AI,RS,RS,RS,RS,RS,RS},0,NOP},
 {"LD A#",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|AI|PE,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"LD B#",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|BI|PE,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"LD A&",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,RO|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
@@ -282,12 +296,12 @@ int main()
 {"LD B%",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,RO|CI|ME,RO|MIH,CO|MIL,RO|BI,RS,RS,RS,RS,RS,RS},0,NOP},
 {"LD A[&FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|CI|ME,RO|MIH,CO|MIL,RO|AI,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"LD B[&FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|CI|ME,RO|MIH,CO|MIL,RO|BI,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHL",{POL|MIL,POH|MIH,RO|II|PE|ME,SHL|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHL &",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,SHL|RI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHL A&",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,RO|AI,SHL|AI,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHL [FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,SHL|RI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHL A[FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|AI,SHL|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHL A{FP}",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|CI|ME,RO|MIH,CO|MIL,RO|AI,SHL|AI,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHL4",{POL|MIL,POH|MIH,RO|II|PE|ME,SHL|AI,SHL|AI,SHL|AI,SHL|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHL4 &",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,SHL|AI,SHL|AI,SHL|AI,SHL|RI,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHL4 A&",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,RO|AI,SHL|AI,SHL|AI,SHL|AI,SHL|AI,RS,RS,RS,RS,RS},0,NOP},
+{"SHL4 [FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,SHL|AI,SHL|AI,SHL|AI,SHL|RI,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHL4 A[FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|AI,SHL|AI,SHL|AI,SHL|AI,SHL|AI,RS,RS,RS,RS,RS,RS},0,NOP},
+{"SHL4 A{FP}",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|CI|ME,RO|MIH,CO|MIL,RO|AI,SHL|AI,SHL|AI,SHL|AI,SHL|AI,RS,RS,RS},0,NOP},
 {"ST A&",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,AO|RI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"ST B&",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,BO|RI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"ST A[FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,AO|RI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
@@ -314,28 +328,28 @@ int main()
 {"MOV FP,A",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"RTS",{POL|MIL,POH|MIH,RO|II|PE|ME,SPO|MIL,SPO|MIH,RO|PIL,ME,RO|PIH,SPACT|SPNOT,SPACT|SPNOT,PE,PE,RS,RS,RS,RS},0,NOP},
+{"JSR #",{POL|MIL,POH|MIH,RO|II|PE|ME,SPACT,SPO|MIH|SPACT,SPO|MIL,POL|RI,ME,POH|RI,POH|MIH,POL|MIL,RO|CI|ME|PE,RO|PIH|PE,CO|PIL,RS,RS},0,BRNI},
+{"BEQ #",{POL|MIL,POH|MIH,RO|II|PE|ME,ME|PE,ME|PE,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},2,BRNI},
+{"BNE #",{POL|MIL,POH|MIH,RO|II|PE|ME,ME|PE,ME|PE,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},4,BRNI},
+{"BCS #",{POL|MIL,POH|MIH,RO|II|PE|ME,ME|PE,ME|PE,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},1,BRNI},
+{"BCC #",{POL|MIL,POH|MIH,RO|II|PE|ME,ME|PE,ME|PE,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},3,BRNI},
+{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"SHR4",{POL|MIL,POH|MIH,RO|II|PE|ME,SHR|AI,SHR|AI,SHR|AI,SHR|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"SHR4 &",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,SHR|AI,SHR|AI,SHR|AI,SHR|RI,RS,RS,RS,RS,RS,RS},0,NOP},
 {"SHR4 A&",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,RO|AI,SHR|AI,SHR|AI,SHR|AI,SHR|AI,RS,RS,RS,RS,RS},0,NOP},
 {"SHR4 [FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,SHR|AI,SHR|AI,SHR|AI,SHR|RI,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"SHR4 A[FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|AI,SHR|AI,SHR|AI,SHR|AI,SHR|AI,RS,RS,RS,RS,RS,RS},0,NOP},
 {"SHR4 A{FP}",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|CI|ME,RO|MIH,CO|MIL,RO|AI,SHR|AI,SHR|AI,SHR|AI,SHR|AI,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHR",{POL|MIL,POH|MIH,RO|II|PE|ME,SHR|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHR &",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,SHR|RI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHR A&",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,RO|AI,SHR|AI,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHR [FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,SHR|RI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHR A[FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|AI,SHR|AI,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"SHR A[&FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,FPO|MIL,FPO|MIH,RO|CI|ME,RO|MIH,CO|MIL,RO|AI,SHR|AI,RS,RS,RS,RS,RS,RS},0,NOP},
 {"POP A",{POL|MIL,POH|MIH,RO|II|PE|ME,SPO|MIL,SPO|MIH,RO|AI,SPACT|SPNOT,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"POP B",{POL|MIL,POH|MIH,RO|II|PE|ME,SPO|MIL,SPO|MIH,RO|BI,SPACT|SPNOT,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"POPW AB",{POL|MIL,POH|MIH,RO|II|PE|ME,SPO|MIL,SPO|MIH,RO|BI,ME,RO|AI,SPACT|SPNOT,SPACT|SPNOT,RS,RS,RS,RS,RS,RS},0,NOP},
@@ -362,75 +376,83 @@ int main()
 {"PSHSW &",{POL|MIL,POH|MIH,RO|II|PE|ME,SPACT,RO|CI|ME|PE,RO|MIH|PE,CO|MIL,RO|CI|ME,RO|XI,SPACT|SPO|MIH,SPO|MIL,XO|RI|ME,CO|RI,RS,RS,RS},0,NOP},
 {"PSHB [FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,SPACT,SPACT|FPO|MIH,FPO|MIL,RO|CI,SPO|MIL,SPO|MIH,CO|RI,RS,RS,RS,RS,RS,RS},0,NOP},
 {"PSHW [FP]",{POL|MIL,POH|MIH,RO|II|PE|ME,SPACT,SPACT|FPO|MIH,FPO|MIL,RO|CI|ME,RO|XI,SPO|MIH,SPO|MIL,CO|RI|ME,XO|RI,RS,RS,RS,RS},0,NOP},
-{"RTS",{POL|MIL,POH|MIH,RO|II|PE|ME,SPO|MIL,SPO|MIH,RO|PIL,ME,RO|PIH,SPACT|SPNOT,SPACT|SPNOT,PE,PE,RS,RS,RS,RS},0,NOP},
-{"JSR #",{POL|MIL,POH|MIH,RO|II|PE|ME,SPACT,SPO|MIH|SPACT,SPO|MIL,POL|RI,ME,POH|RI,POH|MIH,POL|MIL,RO|CI|ME|PE,RO|PIH|PE,CO|PIL,RS,RS},0,BRNI},
-{"BEQ #",{POL|MIL,POH|MIH,RO|II|PE|ME,ME|PE,ME|PE,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},2,BRNI},
-{"BNE #",{POL|MIL,POH|MIH,RO|II|PE|ME,ME|PE,ME|PE,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},4,BRNI},
-{"BCS #",{POL|MIL,POH|MIH,RO|II|PE|ME,ME|PE,ME|PE,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},1,BRNI},
-{"BCC #",{POL|MIL,POH|MIH,RO|II|PE|ME,ME|PE,ME|PE,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},3,BRNI},
+{"IRQ1",{SPACT|CLI,SPACT,SPACT,SPACT,SPACT,SPACT|SPO|MIH,SPO|MIL,AO|RI|ME,BO|RI|ME,FPO|RI|ME,FRO|RI|ME,POL|RI|ME,POH|RI,ACK,CONST|II,RS},0,NOP},
+{"IRQ2",{OIDTL|BI,IRQO|AI,ADD|XI,AI,OIDTH|BI,ADC|AI,XO|MIL,AO|MIH,RO|CI|ME,RO|PIH,CO|PIL,POL|MIL,POH|MIH,RO|II,RS,RS},0,NOP},
 {"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"STI",{POL|MIL,POH|MIH,RO|II|PE|ME,STI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"CLI",{POL|MIL,POH|MIH,RO|II|PE|ME,CLI,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"LIDT &",{POL|MIL,POH|MIH,RO|II|PE|ME,RO|XI|ME|PE,XO|LIDTL,RO|XI|PE,XO|LIDTH,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"IRET",{POL|MIL,POH|MIH,RO|II|PE|ME,SPO|MIL,SPO|MIH,RO|AI|ME|SPACT|SPNOT,RO|BI|ME|SPACT|SPNOT,RO|FPI|ME|SPACT|SPNOT,RO|FRI|ME|SPACT|SPNOT,RO|PIL|ME|SPACT|SPNOT,RO|PIH|ME|SPACT|SPNOT,STI,RS,RS,RS,RS},0,NOP},
 {"BRKLAB",{POL|MIL,POH|MIH,RO|II|PE|ME,PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"REV",{POL|MIL,POH|MIH,RO|II|PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
-{"BRK",{POL|MIL,POH|MIH,RO|II|PE|ME,PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
+{"BRK",{POL|MIL,POH|MIH,RO|PIH|ME|SPACT|SPNOT,PE|ME,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 {"HLT",{POL|MIL,POH|MIH,RO|II,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS,RS},0,NOP},
 
         };
 
-/*
-        0 - Normal
-        1 - Carry
-        2 - Zero
-        3 - No Carry
-        4 - No Zero
-*/
+        /*
+                0 - Normal
+                1 - Carry
+                2 - Zero
+                3 - No Carry
+                4 - No Zero
+        */
 
-Opcodes ucodes[16][256];
-Opcodes reference[17];
-                for(int j=0;j<256;j++){
-                        //memcpy(&(ucodes[0][j].Microcode[0]),&(opcs[j].Microcode[0]),16*sizeof(unsigned int));
-                        //std::cout<<ucodes[i][j].Microcode[2]<<" "<<opcs[j].Microcode[2]<<"\n";
-                        if(opcs[j].FlagDepender==0){
-                                memcpy(reference[opcs[j].t].Microcode,opcs[j].Microcode,16*sizeof(unsigned int));
-                        }
+        Opcodes ucodes[16][256];
+        Opcodes reference[17];
+        for (int j = 0; j < 256; j++)
+        {
+                // memcpy(&(ucodes[0][j].Microcode[0]),&(opcs[j].Microcode[0]),16*sizeof(unsigned int));
+                // std::cout<<ucodes[i][j].Microcode[2]<<" "<<opcs[j].Microcode[2]<<"\n";
+                if (opcs[j].FlagDepender == 0)
+                {
+                        memcpy(reference[opcs[j].t].Microcode, opcs[j].Microcode, 16 * sizeof(unsigned int));
                 }
+        }
 
-        for(int i=0;i<4;i++){
-                for(int j=0;j<256;j++){
-        
-                        memcpy(&(ucodes[i][j].Microcode[0]),&(opcs[j].Microcode[0]),16*sizeof(uint32_t));
-                        //if(opcs[j].FlagDepender!=0){
-                                if(opcs[j].FlagDepender==0){
-                                        memcpy(&(ucodes[i][j].Microcode[0]),&(opcs[j].Microcode[0]),16*sizeof(uint32_t));
-                                        //memcpy(ucodes[i][j].Microcode,reference[opcs[j].t].Microcode,16*sizeof(uint32_t));
-                                }
-                                if((i&1)&&opcs[j].FlagDepender==1){
-                                        memcpy(ucodes[i][j].Microcode,reference[opcs[j].t].Microcode,16*sizeof(uint32_t));
-                                }
-                                if((i&2)&&opcs[j].FlagDepender==2){
-                                        memcpy(ucodes[i][j].Microcode,reference[opcs[j].t].Microcode,16*sizeof(uint32_t));
-                                }
-                                if(!(i&1)&&opcs[j].FlagDepender==3){
-                                        memcpy(ucodes[i][j].Microcode,reference[opcs[j].t].Microcode,16*sizeof(uint32_t));
-                                }
-                                if(!(i&2)&&opcs[j].FlagDepender==4){
-                                        memcpy(ucodes[i][j].Microcode,reference[opcs[j].t].Microcode,16*sizeof(uint32_t));
-                                }
+        for (int i = 0; i < 4; i++)
+        {
+                for (int j = 0; j < 256; j++)
+                {
+
+                        memcpy(&(ucodes[i][j].Microcode[0]), &(opcs[j].Microcode[0]), 16 * sizeof(uint32_t));
+                        // if(opcs[j].FlagDepender!=0){
+                        if (opcs[j].FlagDepender == 0)
+                        {
+                                memcpy(&(ucodes[i][j].Microcode[0]), &(opcs[j].Microcode[0]), 16 * sizeof(uint32_t));
+                                // memcpy(ucodes[i][j].Microcode,reference[opcs[j].t].Microcode,16*sizeof(uint32_t));
+                        }
+                        if ((i & 1) && opcs[j].FlagDepender == 1)
+                        {
+                                memcpy(ucodes[i][j].Microcode, reference[opcs[j].t].Microcode, 16 * sizeof(uint32_t));
+                        }
+                        if ((i & 2) && opcs[j].FlagDepender == 2)
+                        {
+                                memcpy(ucodes[i][j].Microcode, reference[opcs[j].t].Microcode, 16 * sizeof(uint32_t));
+                        }
+                        if (!(i & 1) && opcs[j].FlagDepender == 3)
+                        {
+                                memcpy(ucodes[i][j].Microcode, reference[opcs[j].t].Microcode, 16 * sizeof(uint32_t));
+                        }
+                        if (!(i & 2) && opcs[j].FlagDepender == 4)
+                        {
+                                memcpy(ucodes[i][j].Microcode, reference[opcs[j].t].Microcode, 16 * sizeof(uint32_t));
+                        }
 
                         //}
                 }
         }
 
-
         std::ofstream file1, file2, file3;
         file1.open("microcode1.bin", std::ios::binary);
         file2.open("microcode2.bin", std::ios::binary);
         file3.open("microcode3.bin", std::ios::binary);
-        
+
         // file1<<"v2.0 raw\n ";
         // file2<<"v2.0 raw\n ";
         // file3<<"v2.0 raw\n ";
@@ -441,10 +463,10 @@ Opcodes reference[17];
                         for (int j = 0; j < 16; j++)
                         {
 
-                                unsigned int c1 = ( ucodes[k][i].Microcode[j] & 255);//^0b11011110;
-                                unsigned int c2 = ((ucodes[k][i].Microcode[j] >> 8) & 255);//^0b11101111;
-                                unsigned int c3 = ((ucodes[k][i].Microcode[j] >> 16) & 255);//^0b11101111;
-                                
+                                unsigned int c1 = (ucodes[k][i].Microcode[j] & 255);         //^0b11011110;
+                                unsigned int c2 = ((ucodes[k][i].Microcode[j] >> 8) & 255);  //^0b11101111;
+                                unsigned int c3 = ((ucodes[k][i].Microcode[j] >> 16) & 255); //^0b11101111;
+
                                 file1.write(reinterpret_cast<char *>(&c1), 1);
                                 file2.write(reinterpret_cast<char *>(&c2), 1);
                                 file3.write(reinterpret_cast<char *>(&c3), 1);
@@ -453,5 +475,4 @@ Opcodes reference[17];
                         // printf("\n");
                 }
         }
-        
 }

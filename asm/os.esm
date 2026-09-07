@@ -2,14 +2,18 @@
   .def cTrue 1
 
 init:
+  lidt &iterrupt_table
+  sti
   pshw #osString
+  jsr #printString
+  pshw #osCommandString
   jsr #printString
 .first:
   ld A#0
   mov A,SP
   pshw #inputBuffer
 .loop:
-  ld A&0x2000
+  jsr #keyboard_consume
   cmp A#0x0
   
 ; Hay una letra en el buffer
@@ -37,9 +41,13 @@ init:
 
   rts
 .newline:
+  ld A#0xa
+  st A&0x2000
   ld A#cFalse
   beq #compareCommands
   jsr #emptyInputBuffer
+  pshw #osCommandString
+  jsr #printString
   jmp #.first
 
 
@@ -166,17 +174,90 @@ addFrameWord:
   ld A[FP]
   adc A#0x0
   st A[FP]
-  
-  
+
   rts
+
+iterrupt_table:
+    .dw timer_handler
+    .dw keyboard_handler
+
+timer_rise:
+    .res 1
+timer_handler:
+    ld A&timer_counter
+    add A#0x1
+    st A&timer_counter
+
+    ld A&timer_counter+1
+    adc A#0x0
+    st A&timer_counter+1
+
+    ld A&timer_counter+2
+    adc A#0x0
+    st A&timer_counter+2
+
+    ld A&timer_counter+3
+    adc A#0x0
+    st A&timer_counter+3
+
+    ld A#0x1
+    st A&timer_rise
+
+    iret
+timer_counter:
+    .res 4
+
+keyboard_handler:
+    ld A&0x2000
+    st A%keyboard_counter
+
+    ld A&keyboard_counter
+    add A#0x1
+    st A&keyboard_counter
+
+    ld A&keyboard_counter+1
+    adc A#0x0
+    st A&keyboard_counter+1
+    iret
+
+keyboard_consume:
+    ld A&keyboard_counter
+    sub A#0x1
+    st A&keyboard_counter
+
+    ld A&keyboard_counter+1
+    sbc A#0x0
+    st A&keyboard_counter+1
+
+    ld A%keyboard_counter
+    cmp A#0x0
+    jpz #.new
+    rts
+.new:
+    ld A&keyboard_counter
+    add A#0x1
+    st A&keyboard_counter
+
+    ld A&keyboard_counter+1
+    adc A#0x0
+    st A&keyboard_counter+1
+    ld A#0x0
+    rts
+    nop
+keyboard_counter:
+  .dw keyboard_buffer
+
+keyboard_buffer:
+  .res 32
+
+
 
 ListString:
   .string "LIST",0
-ListWel:
-  .string "Bienvenido a la lista",0xa,0
-
 RunString:
   .string "RUN",0
+ListWel:
+  .string "Bienvenido a la lista",0xa,0
 RunWel:
   .string "Se ejecutara el programa",0xa,0
 LoadString:
@@ -186,11 +267,18 @@ noCmd:
   .string "No se encontro el comando",0xa,0
 
 osString:
-  .string "    NeiOS",0xd,0xa
-  .string " COMMANDS",0xd,0xa
-  .string "LIST",0xd,0xa
-  .string "RUN",0xd,0xa
-  .string "LOAD",0xd,0xa,0x0
+3+.6
+  .string "        __    __            __   ______    ______  ",0xa
+  .string "       /  \  /  |          /  | /      \  /      \ ",0xa
+  .string "       $$  \ $$ |  ______  $$/ /$$$$$$  |/$$$$$$  |",0xa
+  .string "       $$$  \$$ | /      \ /  |$$ |  $$ |$$ \__$$/ ",0xa
+  .string "       $$$$  $$ |/$$$$$$  |$$ |$$ |  $$ |$$      \ ",0xa
+  .string "       $$ $$ $$ |$$    $$ |$$ |$$ |  $$ | $$$$$$  |",0xa
+  .string "       $$ |$$$$ |$$$$$$$$/ $$ |$$ \__$$ |/  \__$$ |",0xa
+  .string "       $$ | $$$ |$$       |$$ |$$    $$/ $$    $$/ ",0xa
+  .string "       $$/   $$/  $$$$$$$/ $$/  $$$$$$/   $$$$$$/  ",0xa,0xa,0x0
+osCommandString:
+  .string " ->",0x0
 inputBuffer:
   .res 32
 end:
